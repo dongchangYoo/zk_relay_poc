@@ -2,6 +2,27 @@ import json
 import os
 import subprocess
 
+"""
+<Data architecture>
+
+functions
+- compile(code.zok) -> program
+- setup(program) -> key-pair
+- compute witness(program, input) -> witness
+- generate proof(witness, proving-key) -> proof.json
+- export verifier(verification.key) -> verifier.sol
+
+data
+- code.zok
+- program
+- verification.key
+- proving.key
+- witness
+- proof.json
+- verifier.sol
+- zokrates binary
+"""
+
 
 class Zokrates:
     def __init__(self, zokrates_bin_path: str = None, zokrates_stdlib_path: str = None, out_dir: str = None):
@@ -28,6 +49,7 @@ class Zokrates:
         return result
 
     # def setup(self, program_path: str):
+
 
 if __name__ == "__main__":
     zk = Zokrates()
