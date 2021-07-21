@@ -1,0 +1,5 @@
+{
+    "zokrates_bin_path": "/Users/dc/research_project/ZoKrates/target/release",
+    "zokrates_stdlib_path": "/Users/dc/research_project/ZoKrates/zokrates_stdlib",
+    "batch_size": 7
+}
