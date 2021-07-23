@@ -24,7 +24,7 @@ data
 - verifier.sol
 - zokrates binary
 """
-
+PROVING_SCHEME = ["g16", "pghr13", "gm17", "marli"]
 
 class Zokrates:
     def __init__(self, config_path: str):
@@ -68,6 +68,9 @@ class Zokrates:
         return True
 
     def setup(self, proving_scheme: str = "g16"):
+        if proving_scheme not in PROVING_SCHEME:
+            raise Exception("Unknown proving_scheme: {}".format(proving_scheme))
+
         cmd = [self.zokrates_bin_path, "setup"]
         cmd += ["-i", self.prog_path]
         if not os.path.exists(self.setup_dir):
@@ -81,8 +84,23 @@ class Zokrates:
             raise Exception("[err] compile error")
         return True
 
+    def compute_witness(self, *args):
+        cmd = [self.zokrates_bin_path, "compute-witness"]
+        cmd += ["-a"] + [str(arg) for arg in args]
+        cmd += ["-i", self.prog_path]
+        if not os.path.exists(self.proof_dir):
+            os.mkdir(self.proof_dir)
+        cmd += ["-o", self.witness_path]
+
+        print(">> compute_witness")
+        if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
+            raise Exception("[err] compile error")
+        return True
+
+
 
 if __name__ == "__main__":
     zk = Zokrates("../conf/config.toml")
     zk.compile()
     zk.setup()
+    zk.compute_witness(337, 113569)
