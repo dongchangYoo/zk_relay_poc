@@ -57,18 +57,32 @@ class Zokrates:
     def compile(self):
         cmd = [self.zokrates_bin_path, "compile"]
         cmd += ["-i", self.code_path]
-        if not os.path.exists(self.proof_dir):
-            os.mkdir(self.proof_dir)
-        cmd += ["-o", self.proof_path]
+        if not os.path.exists(self.code_dir):
+            os.mkdir(self.code_dir)
+        cmd += ["-o", self.prog_path]
         cmd += ["--stdlib-path", self.zokrates_std_lib_path]
 
         print(">> Compile the program to r1cs form.")
-        result = subprocess.run(cmd)
-        return result
+        if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
+            raise Exception("[err] compile error")
+        return True
 
-    # def setup(self, program_path: str):
+    def setup(self, proving_scheme: str = "g16"):
+        cmd = [self.zokrates_bin_path, "setup"]
+        cmd += ["-i", self.prog_path]
+        if not os.path.exists(self.setup_dir):
+            os.mkdir(self.setup_dir)
+        cmd += ["-p", self.pkey_path]
+        cmd += ["-v", self.vkey_path]
+        cmd += ["-s", proving_scheme]
+
+        print(">> Setup")
+        if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
+            raise Exception("[err] compile error")
+        return True
 
 
 if __name__ == "__main__":
     zk = Zokrates("../conf/config.toml")
     zk.compile()
+    zk.setup()
