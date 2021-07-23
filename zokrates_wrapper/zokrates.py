@@ -119,3 +119,5 @@ if __name__ == "__main__":
     zk.integrated_setup()
     zk.prove(337, 113569)
     zk.export_verifier()
+
+    print("validate.zok".format(i=0))
