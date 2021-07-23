@@ -1,29 +1,7 @@
-import json
 import os
 import subprocess
 import toml
 
-
-"""
-<Data architecture>
-
-functions
-- compile(code.zok) -> program
-- setup(program) -> key-pair
-- compute witness(program, input) -> witness
-- generate proof(witness, proving-key) -> proof.json
-- export verifier(verification.key) -> verifier.sol
-
-data
-- code.zok
-- program
-- verification.key
-- proving.key
-- witness
-- proof.json
-- verifier.sol
-- zokrates binary
-"""
 PROVING_SCHEME = ["g16", "pghr13", "gm17", "marli"]
 
 
@@ -57,6 +35,14 @@ class Zokrates:
 
         self.zokrates_bin_path = self.config["zokrates"]["BIN_PATH"]
         self.zokrates_std_lib_path = self.config["zokrates"]["STDLIB_PATH"]
+
+    def integrated_setup(self):
+        self.compile()
+        self.setup()
+
+    def prove(self, *args):
+        self.compute_witness(*args)
+        self.generate_proof()
 
     def compile(self):
         cmd = [self.zokrates_bin_path, "compile"]
@@ -113,10 +99,23 @@ class Zokrates:
             raise Exception("[err] generate_proof error")
         return True
 
+    def export_verifier(self, curve_name: str = "bn128"):
+        cmd = [self.zokrates_bin_path, "export-verifier"]
+        cmd += ["-i", self.vkey_path]
+        cmd += ["-s", self.proving_scheme]
+        cmd += ["-c", curve_name]
+        if not os.path.exists(self.verifier_dir):
+            os.mkdir(self.verifier_dir)
+        cmd += ["-o", self.verifier_contract_path]
+
+        print(">> export_verifier")
+        if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
+            raise Exception("[err] export_verifier error")
+        return True
+
 
 if __name__ == "__main__":
     zk = Zokrates("../conf/config.toml")
-    zk.compile()
-    zk.setup()
-    zk.compute_witness(337, 113569)
-    zk.generate_proof()
+    zk.integrated_setup()
+    zk.prove(337, 113569)
+    zk.export_verifier()
