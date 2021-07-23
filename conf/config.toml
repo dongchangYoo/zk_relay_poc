@@ -12,6 +12,7 @@ STDLIB_PATH = "/Users/dc/research_project/ZoKrates/zokrates_stdlib/"
     SETUP_DIR = "setup/"
     VKEY_FILE_NAME = "verification.key"
     PKEY_FILE_NAME = "proving.key"
+    PROVING_SCHEME_NAME = "g16"
     [context.proof]
     PROOF_DIR = "proof/"
     WITNESS_FILE_NAME = "witness"

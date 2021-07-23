@@ -26,6 +26,7 @@ data
 """
 PROVING_SCHEME = ["g16", "pghr13", "gm17", "marli"]
 
+
 class Zokrates:
     def __init__(self, config_path: str):
         self.config = toml.load(config_path)
@@ -41,6 +42,9 @@ class Zokrates:
         self.setup_dir = program_root_dir + setup_ctx["SETUP_DIR"]
         self.vkey_path = self.setup_dir + setup_ctx["VKEY_FILE_NAME"]
         self.pkey_path = self.setup_dir + setup_ctx["PKEY_FILE_NAME"]
+        self.proving_scheme = setup_ctx["PROVING_SCHEME_NAME"]
+        if self.proving_scheme not in PROVING_SCHEME:
+            raise Exception("Unknown proving_scheme: {}".format(self.proving_scheme))
 
         proof_ctx = context["proof"]
         self.proof_dir = program_root_dir + proof_ctx["PROOF_DIR"]
@@ -67,36 +71,47 @@ class Zokrates:
             raise Exception("[err] compile error")
         return True
 
-    def setup(self, proving_scheme: str = "g16"):
-        if proving_scheme not in PROVING_SCHEME:
-            raise Exception("Unknown proving_scheme: {}".format(proving_scheme))
-
+    def setup(self):
         cmd = [self.zokrates_bin_path, "setup"]
         cmd += ["-i", self.prog_path]
         if not os.path.exists(self.setup_dir):
             os.mkdir(self.setup_dir)
         cmd += ["-p", self.pkey_path]
         cmd += ["-v", self.vkey_path]
-        cmd += ["-s", proving_scheme]
+        cmd += ["-s", self.proving_scheme]
 
         print(">> Setup")
         if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
-            raise Exception("[err] compile error")
+            raise Exception("[err] setup error")
         return True
 
     def compute_witness(self, *args):
         cmd = [self.zokrates_bin_path, "compute-witness"]
-        cmd += ["-a"] + [str(arg) for arg in args]
         cmd += ["-i", self.prog_path]
         if not os.path.exists(self.proof_dir):
             os.mkdir(self.proof_dir)
         cmd += ["-o", self.witness_path]
+        cmd += ["-a"] + [str(arg) for arg in args]
 
         print(">> compute_witness")
         if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
-            raise Exception("[err] compile error")
+            raise Exception("[err] compute_witness error")
         return True
 
+    def generate_proof(self):
+        cmd = [self.zokrates_bin_path, "generate-proof"]
+        cmd += ["-i", self.prog_path]
+        cmd += ["-p", self.pkey_path]
+        cmd += ["-w", self.witness_path]
+        cmd += ["-s", self.proving_scheme]
+        if not os.path.exists(self.proof_dir):
+            os.mkdir(self.proof_dir)
+        cmd += ["-j", self.proof_path]
+
+        print(">> generate_proof")
+        if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
+            raise Exception("[err] generate_proof error")
+        return True
 
 
 if __name__ == "__main__":
@@ -104,3 +119,4 @@ if __name__ == "__main__":
     zk.compile()
     zk.setup()
     zk.compute_witness(337, 113569)
+    zk.generate_proof()
