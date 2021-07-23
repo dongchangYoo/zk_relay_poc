@@ -1,0 +1,21 @@
+[zokrates]
+BIN_PATH = "/Users/dc/research_project/ZoKrates/target/release/zokrates"
+STDLIB_PATH = "/Users/dc/research_project/ZoKrates/zokrates_stdlib/"
+
+[context]
+    ROOT_DIR = "/Users/dc/research_project/zk_relay_poc/test/"
+    [context.program]
+    CODE_DIR = "code/"
+    CODE_FILE_NAME = "example.zok"
+    PROGRAM_FILE_NAME = "out"
+    [context.setup]
+    SETUP_DIR = "setup/"
+    VKEY_FILE_NAME = "verification.key"
+    PKEY_FILE_NAME = "proving.key"
+    [context.proof]
+    PROOF_DIR = "proof/"
+    WITNESS_FILE_NAME = "witness"
+    PROOF_FILE_NAME = "proof.json"
+    [context.verify]
+    VERIFICATION_DIR = "verify/"
+    CONTRACT_FILE_NAME = "verifier.sol"
