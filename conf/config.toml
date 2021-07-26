@@ -1,12 +1,12 @@
 [zokrates]
 BIN_PATH = "/Users/dc/research_project/ZoKrates/target/release/zokrates"
-STDLIB_PATH = "/Users/dc/research_project/ZoKrates/zokrates_stdlib/"
+STDLIB_PATH = "/Users/dc/research_project/ZoKrates/zokrates_stdlib/stdlib"
 
 [context]
-    ROOT_DIR = "/Users/dc/research_project/zk_relay_poc/test/"
+    ROOT_DIR = "/Users/dc/research_project/zk_relay_poc/data/"
     [context.program]
     CODE_DIR = "code/"
-    CODE_FILE_NAME = "example.zok"
+    CODE_FILE_NAME = "validate_batch3.zok"
     PROGRAM_FILE_NAME = "out"
     [context.setup]
     SETUP_DIR = "setup/"

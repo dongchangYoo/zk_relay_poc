@@ -53,7 +53,9 @@ class Zokrates:
         cmd += ["--stdlib-path", self.zokrates_std_lib_path]
 
         print(">> Compile the program to r1cs form.")
-        if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
+        # if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
+        #     raise Exception("[err] compile error")
+        if subprocess.run(cmd).returncode != 0:
             raise Exception("[err] compile error")
         return True
 
@@ -117,7 +119,7 @@ class Zokrates:
 if __name__ == "__main__":
     zk = Zokrates("../conf/config.toml")
     zk.integrated_setup()
-    zk.prove(337, 113569)
-    zk.export_verifier()
+    # zk.prove(337, 113569)
+    # zk.export_verifier()
 
-    print("validate.zok".format(i=0))
+    # print("validate.zok".format(i=0))

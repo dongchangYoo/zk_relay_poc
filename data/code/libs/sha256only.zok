@@ -1,0 +1,7 @@
+import "hashes/sha256/512bit.zok" as sha256
+
+def main(u32[8] input) -> (u32[8]):
+
+	u32[8] dummyblock = [2147483648, ...[0; 6], 256]
+
+return sha256(input, dummyblock)
