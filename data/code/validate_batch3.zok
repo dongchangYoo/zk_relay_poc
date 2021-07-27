@@ -1,41 +1,65 @@
-import "utils/pack/u32/pack128.zok" as pack128
-import "utils/pack/u32/unpack128.zok" as unpack128
+import "utils/casts/u32_to_bits.zok" as u32_to_bits
+import "utils/casts/u32_from_bits.zok" as u32_from_bits
+import "utils/casts/u32_8_to_bool_256.zok" as u32_8_to_bits
+import "utils/casts/bool_256_to_u32_8.zok" as u32_8_from_bits
+
+import "utils/pack/u32/pack128.zok" as pack32To128
+import "utils/pack/u32/unpack128.zok" as unpack128to32
 import "hashes/sha256/1024bit.zok" as sha256for1024
+import "hashes/sha256/512bits.zok" as sha256for512
+
+
+import "utils/pack/bool/pack128.zok" as pack1To128
+import "utils/pack/bool/unpack128.zok" as unpack128To1
+
+
+
 import "./libs/sha256only.zok" as sha256only
 import "./libs/getHexLength.zok" as getHexLength
 import "./libs/compute_merkle_root.zok" as compute_merkle_root
 
-def toBigEndian(field[32] value) -> (field[32]):
-    return [
-            ...value[24..32],
-            ...value[16..24],
-            ...value[8..16],
-            ...value[0..8]]
+// TODO refactoring done
+def toBigEndian(u32 value) -> (u32):
+    bool[32] bits = u32_to_bits(value)
+    return u32_from_bits([...bits[24..32],...bits[16..24],...bits[8..16],...bits[0..8]])
 
-def toBigEndian(field[24] value) -> (field[24]):
-    return [
-            ...value[16..24],
-            ...value[8..16],
-            ...value[0..8]]
+def toBigEndian(u32[8] value) -> (field[128]):
+    bool[256] bits = u32_8_to_bits(value)
 
-def toBigEndian(field[128] value) -> (field[128]):
-    return [
-            ...value[120..128],
-            ...value[112..120],
-            ...value[104..112],
-            ...value[96..104],
-            ...value[88..96],
-            ...value[80..88],
-            ...value[72..80],
-            ...value[64..72],
-            ...value[56..64],
-            ...value[48..56],
-            ...value[40..48],
-            ...value[32..40],
-            ...value[24..32],
-            ...value[16..24],
-            ...value[8..16],
-            ...value[0..8]]
+    return u32_8_from_bits([
+       ...bits[248..256],
+       ...bits[240..248],
+       ...bits[232..240],
+       ...bits[224..232],
+       ...bits[216..224],
+       ...bits[208..216],
+       ...bits[200..208],
+       ...bits[192..200],
+       ...bits[184..192],
+       ...bits[176..184],
+       ...bits[168..176],
+       ...bits[160..168],
+       ...bits[152..160],
+       ...bits[144..152],
+       ...bits[136..144],
+       ...bits[128..136]
+       ...bits[120..128],
+       ...bits[112..120],
+       ...bits[104..112],
+       ...bits[96..104],
+       ...bits[88..96],
+       ...bits[80..88],
+       ...bits[72..80],
+       ...bits[64..72],
+       ...bits[56..64],
+       ...bits[48..56],
+       ...bits[40..48],
+       ...bits[32..40],
+       ...bits[24..32],
+       ...bits[16..24],
+       ...bits[8..16],
+       ...bits[0..8]
+   ])
 
 def packMaxVariance(field length) -> (field):
     field result = 0
@@ -64,7 +88,7 @@ def packMaxVariance(field length) -> (field):
     result = if length == 21 then pack128([0, [4294967295; 2], 1048575]) else result fi
     result = if length == 22 then pack128([0, [4294967295; 2], 16777215]) else result fi
     result = if length == 23 then pack128([0, [4294967295; 2], 268435455]) else result fi
-    result = if length == 24 then pack128([0, [4294967295; 3]) else result fi
+    result = if length == 24 then pack128([0, [4294967295; 3]]) else result fi
 
     result = if length == 25 then pack128([[4294967295; 3], 15]) else result fi
     result = if length == 26 then pack128([[4294967295; 3], 255]) else result fi
@@ -166,49 +190,47 @@ def hash_block_header(field[5] preimage) -> (field[2]):
 return [res0, res1]
 
 
-def validate_block_header(field reference_target, field[256] bin_prev_block_hash, field[5] preimage) -> (field[257]):
-    a = unpack128(preimage[0])
-	b = unpack128(preimage[1])
-	c = unpack128(preimage[2])
-	d = unpack128(preimage[3])
-	e = unpack128(preimage[4])
+def validate_block_header(u32 reference_target, u32[8] prev_block_hash, u32[20] target_block) -> (field[257]):
+    /*
+    a = unpack128To32(target_block[0])
+	b = unpack128To32(target_block[1])
+	c = unpack128To32(target_block[2])
+	d = unpack128To32(target_block[3])
+	e = unpack128To32(target_block[4])
+    */
 
-    encoded_prev_block_hash1 = pack128([...a[32..128], ...b[0..32]])
-    encoded_prev_block_hash2 = pack128([...b[32..128], ...c[0..32]])
-    field[2] prev_block_hash = [pack128(bin_prev_block_hash[0..128]), pack128(bin_prev_block_hash[128..256])]
-    field valid = if encoded_prev_block_hash1 == prev_block_hash[0] && encoded_prev_block_hash2 == prev_block_hash[1] \
-        then 1 else 0 fi
+    u32[8] encoded_prev_block_hash = target_block[1..9]
+    assert(encoded_prev_block_hash[0] == prev_block_hash[0])
+    assert(encoded_prev_block_hash[1] == prev_block_hash[1])
+    assert(encoded_prev_block_hash[2] == prev_block_hash[2])
+    assert(encoded_prev_block_hash[3] == prev_block_hash[3])
+    assert(encoded_prev_block_hash[4] == prev_block_hash[4])
+    assert(encoded_prev_block_hash[5] == prev_block_hash[5])
+    assert(encoded_prev_block_hash[6] == prev_block_hash[6])
+    assert(encoded_prev_block_hash[7] == prev_block_hash[7])
 
-    // converting to big endian is not necessary here, as reference target is encoded little endian
-    field current_target = pack128([...[0; 96], ...e[64..96]])
-    valid = if valid == 1 && current_target == reference_target then 1 else 0 fi
+    u32 current_target = target[18]
+    assert(reference_target == current_target)
 
-    field[256] preimage1 = [...a, ...b]
-    field[256] preimage2 = [...c, ...d]
-    field[256] preimage3 = [...[...e, 1], ...[0; 127]]
-    field[256] dummy = [...[0; 246], ...[1, 0, 1, 0, 0, 0, 0, 0, 0, 0]] //second array indicates length of preimage = 640bit
+    /* Calculate target block hash*/
+    intermediary_image = sha256for1024(target_block[0..8], target_block[8..16], [...target_block[16..20], ...[0; 4], [0; 8])
+    u32[8] block_hash = sha256for512(intermediary_image, [0; 8])
 
-    intermediary = sha256for1024(preimage1, preimage2, preimage3, dummy)
+    /* Calculate target value*/
+    field target = packTarget(toBigEndian(current_target))
 
-    r = sha256only(intermediary)
-
-    target = packTarget(toBigEndian(e[64..96]))
-
-    valid = if valid == 1 && target > pack128(toBigEndian(r[128..256])) then 1 else 0 fi
+    /* Check if block hash is less than or equals to target */
+    assert(target > pack128(toBigEndian(block_hash))) // TODO start here!!!
 
 return [valid, ...r]
 // STATIC_CODE
 
-def main(field first_block_epoch, field[2] prev_block_hash, private field[2 /*n-1*/][5] intermediate_blocks, field[5] final_block) -> (field[7]):
+def main(u32[4] first_block_epoch, u32[8] prev_block_hash, private u32[2][20] intermediate_blocks, u32[20] final_block) -> (field[7]):
 
-    field[128] unpacked_raw_target = unpack128(first_block_epoch)
-    // converting to big endian is not necessary here, as it is compared to a little endian encoding
-    // it is not used for calculations
-    field reference_target = pack128([...[0; 96], ...unpacked_raw_target[64..96]])
+    u32 reference_target = first_block_epoch[2]
+
     field result = 1
-    field[128] bin_prev_block_hash1 = unpack128(prev_block_hash[0])
-    field[128] bin_prev_block_hash2 = unpack128(prev_block_hash[1])
-    field[257] block1 = validate_block_header(reference_target, [...bin_prev_block_hash1, ...bin_prev_block_hash2], intermediate_blocks[0])
+    field[257] block1 = validate_block_header(reference_target, prev_block_hash, intermediate_blocks[0])
     result = if block1[0] == 0 || result == 0 then 0 else 1 fi
 
     // loop start
