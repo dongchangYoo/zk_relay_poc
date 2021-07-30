@@ -1,19 +1,32 @@
 {
   "inputs": [
     {
-      "name": "a",
-      "public": false,
-      "type": "field"
+      "name": "expected_bits",
+      "public": true,
+      "type": "u32"
     },
     {
-      "name": "b",
+      "name": "expected_prev_hash",
       "public": true,
-      "type": "field"
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "target_block",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 32,
+        "type": "u32"
+      }
     }
   ],
   "outputs": [
     {
-      "type": "bool"
+      "type": "field"
     }
   ]
 }

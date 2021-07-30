@@ -1,0 +1,135 @@
+import "utils/casts/u32_to_bits.zok" as u32_to_bits
+import "utils/casts/u32_from_bits.zok" as u32_from_bits
+import "utils/casts/u32_8_to_bool_256.zok" as u32_8_to_bits
+import "utils/casts/bool_256_to_u32_8.zok" as u32_8_from_bits
+import "utils/casts/u32_to_field.zok" as u32_to_field
+
+import "utils/pack/u32/pack128.zok" as pack128
+import "utils/pack/u32/unpack128.zok" as unpack128 // not used
+import "utils/pack/u32/pack256.zok" as pack256
+import "utils/pack/u32/nonStrictUnpack256.zok" as unpack256 // not used
+
+import "utils/pack/bool/pack128.zok" as pack128
+import "utils/pack/bool/unpack128.zok" as boolunpack128  // not used
+import "utils/pack/bool/pack256.zok" as pack256
+import "utils/pack/bool/nonStrictUnpack256.zok" as unpack256 // not used
+
+import "hashes/sha256/1024bit.zok" as sha256for1024
+import "hashes/sha256/512bit.zok" as sha256for512
+
+// TODO refactoring done
+def toBigEndian(u32 value) -> (u32):
+    bool[32] bits = u32_to_bits(value)
+    return u32_from_bits([...bits[24..32],...bits[16..24],...bits[8..16],...bits[0..8]])
+
+def toBigEndian(u32[8] value) -> (u32[8]):
+    bool[256] bits = u32_8_to_bits(value)
+    return u32_8_from_bits([
+       ...bits[248..256],
+       ...bits[240..248],
+       ...bits[232..240],
+       ...bits[224..232],
+       ...bits[216..224],
+       ...bits[208..216],
+       ...bits[200..208],
+       ...bits[192..200],
+       ...bits[184..192],
+       ...bits[176..184],
+       ...bits[168..176],
+       ...bits[160..168],
+       ...bits[152..160],
+       ...bits[144..152],
+       ...bits[136..144],
+       ...bits[128..136],
+       ...bits[120..128],
+       ...bits[112..120],
+       ...bits[104..112],
+       ...bits[96..104],
+       ...bits[88..96],
+       ...bits[80..88],
+       ...bits[72..80],
+       ...bits[64..72],
+       ...bits[56..64],
+       ...bits[48..56],
+       ...bits[40..48],
+       ...bits[32..40],
+       ...bits[24..32],
+       ...bits[16..24],
+       ...bits[8..16],
+       ...bits[0..8]
+   ])
+
+// TODO
+def packTarget(u32 bits) -> (field):
+    u32 exp = bits & 4278190080     // 0xff000000
+    u32 coef = bits & 16777215      // 0x00ffffff
+    bool[32] coef_bools = u32_to_bits(coef)
+
+    field result = \
+    if exp == 385875968 then pack256([...[false; 64], ...coef_bools, ...[false; 160]]) else \
+      if exp == 402653184 then pack256([...[false; 56], ...coef_bools, ...[false; 168]]) else \
+        if exp == 419430400 then pack256([...[false; 48], ...coef_bools, ...[false; 176]]) else \
+          if exp == 436207616 then pack256([...[false; 40], ...coef_bools, ...[false; 184]]) else \
+            if exp == 452984832 then pack256([...[false; 32], ...coef_bools, ...[false; 192]]) else \
+              if exp == 469762048 then pack256([...[false; 24], ...coef_bools, ...[false; 200]]) else \
+                if exp == 486539264 then pack256([...[false; 16], ...coef_bools, ...[false; 208]]) else \
+                  if exp == 503316480 then pack256([...[false; 8], ...coef_bools, ...[false; 216]]) else \
+                    if exp == 520093696 then pack256([...[false; 0], ...coef_bools, ...[false; 224]]) else \
+                    pack128([true; 128]) fi \
+                  fi \
+                fi \
+              fi \
+            fi \
+          fi \
+        fi \
+      fi \
+    fi
+return result
+
+// TODO
+def validate_target(u32 epoch_head, u32 epoch_tail, u32 next_bits) -> (field, field):
+    field time_head = u32_to_field(toBigEndian(epoch_head))
+    field time_tail = u32_to_field(toBigEndian(epoch_tail))
+    field time_delta = time_tail - time_head
+
+    field current_target = packTarget(toBigEndian(epoch_head))
+    field target_time_delta = 1209600
+    field simulated_target = current_target * time_delta / target_time_delta
+
+    field latest_target = packTarget(toBigEndian(next_bits))
+
+    return simulated_target, latest_target
+
+// TODO
+def main(u32 expected_bits, u32[8] expected_prev_hash, u32[32] target_block) -> (field):
+    u32[8] target_prev_hash = target_block[1..9]
+    u32 target_bits = target_block[18]
+
+    /* Check previous hash of target_block */
+    assert(target_prev_hash[0] == expected_prev_hash[0])
+    assert(target_prev_hash[1] == expected_prev_hash[1])
+    assert(target_prev_hash[2] == expected_prev_hash[2])
+    assert(target_prev_hash[3] == expected_prev_hash[3])
+    assert(target_prev_hash[4] == expected_prev_hash[4])
+    assert(target_prev_hash[5] == expected_prev_hash[5])
+    assert(target_prev_hash[6] == expected_prev_hash[6])
+    assert(target_prev_hash[7] == expected_prev_hash[7])
+
+    /* Calculate hash of target_block */
+    u32[8] intermediary_image = sha256for1024(target_block[0..8], target_block[8..16], target_block[16..24], target_block[24..32])
+    u32[8] block_hash = sha256for512(intermediary_image, [2147483648, ...[0; 6], 256])
+
+    /* Check bits of target_block */
+    assert(expected_bits == target_bits)
+
+    /* Check requirement of block hash */
+    field target = packTarget(toBigEndian(target_bits))
+    return target
+
+    /*
+    assert(target > pack256(toBigEndian(block_hash)))
+    return block_hash
+    */
+
+
+

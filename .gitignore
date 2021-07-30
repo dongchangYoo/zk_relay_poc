@@ -129,6 +129,9 @@ dmypy.json
 .pyre/
 
 # project out files
-/out/*
-/out
+/data/proof/*
+/data/setup/*
+/data/verify/*
+
+
 
