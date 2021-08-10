@@ -2,9 +2,6 @@ import json
 import os
 import subprocess
 import toml
-from hashlib import sha256
-
-from zokrates_wrapper.utils import encode_zokrates_input, padding, double_hash_as_little, hex_to_word_array
 
 PROVING_SCHEME = ["g16", "pghr13", "gm17", "marli"]
 
@@ -148,41 +145,3 @@ if __name__ == "__main__":
     zk.integrated_setup()
     zk.prove(encoded_input)
 
-
-
-    # f2_prev_hash = [double_hash_as_little(block645134)[0:32], double_hash_as_little(block645134)[32:64]]
-    # u32_32_intermediate_blocks = hex_to_word_array(padding(block647135))
-    # f5_final_block = [block647136[0:32], block647136[32:64], block647136[64:96], block647136[96: 128], block647136[128:160]]
-    #
-    # encoded_input = list()
-    # encoded_input.append(int(epoch_head_time_and_bits, 16))
-    # encoded_input += [int(item, 16) for item in f2_prev_hash]
-    # encoded_input += u32_32_intermediate_blocks
-    # encoded_input += [int(item, 16) for item in f5_final_block]
-
-
-    # epoch_head = block645120[-32:]
-    # epoch_tail = block647135[-32:]
-    # next_epoch_head = block647136[-32:]
-    #
-    # encoded_input = list()
-    # encoded_input.append(int(epoch_head, 16))
-    # encoded_input.append(int(epoch_tail, 16))
-    # encoded_input.append(int(next_epoch_head, 16))
-
-    # encoded_input = list()
-    # encoded_input.append(0xffff * 256 ** (0x1d - 3))
-    # zk.integrated_setup()
-    # zk.prove(encoded_input)
-    # with open("../data/proof/proof.json") as json_data:
-    #     inputs = json.load(json_data)["inputs"]
-
-    # print(" r: {}".format(inputs[1]))
-    # print(" q: {}".format(inputs[2]))
-    # print("qq: {}".format(hex(0xffff * 256 ** (0x1d - 3) // 1209600)))
-    # if int(inputs[2], 16) == 0xffff * 256 ** (0x1d - 3) // 1209600:
-    #     print("true")
-    # else:
-    #     print("false")
-
-    # zk.export_verifier()

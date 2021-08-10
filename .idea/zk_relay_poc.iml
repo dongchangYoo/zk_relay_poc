@@ -6,6 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/data/proof" />
       <excludeFolder url="file://$MODULE_DIR$/data/setup" />
+      <excludeFolder url="file://$MODULE_DIR$/data/zok_program" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

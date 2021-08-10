@@ -5,8 +5,6 @@ import "utils/casts/u64_from_bits.zok" as u64_from_bits
 from "./to_big_endian.zok" import u32_to_big_endian as to_big_endian
 import "./div_int.zok" as div_int
 
-
-
 def pack_target(u32 bits) -> (field):
     u32 exp = bits & 4278190080     // 0xff000000
     u32 coef = bits & 16777215      // 0x00ffffff
