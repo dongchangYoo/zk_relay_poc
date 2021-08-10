@@ -13,15 +13,18 @@ class Zokrates:
     def __init__(self, config_path: str):
         self.config = toml.load(config_path)
         context = self.config["context"]
+        root_dir = context["ROOT_DIR"]
 
-        program_root_dir = context["ROOT_DIR"]
-        program_ctx = context["program"]
-        self.code_dir = program_root_dir + program_ctx["CODE_DIR"]
-        self.code_path = self.code_dir + program_ctx["CODE_FILE_NAME"]
-        self.prog_path = self.code_dir + program_ctx["PROGRAM_FILE_NAME"]
+        code_ctx = context["code"]
+        self.code_dir = root_dir + code_ctx["CODE_DIR"]
+        self.code_path = self.code_dir + code_ctx["CODE_FILE_NAME"]
+
+        prog_ctx = context["program"]
+        self.prog_dir = root_dir + prog_ctx["PROGRAM_DIR"]
+        self.prog_path = self.prog_dir + prog_ctx["PROGRAM_FILE_NAME"]
 
         setup_ctx = context["setup"]
-        self.setup_dir = program_root_dir + setup_ctx["SETUP_DIR"]
+        self.setup_dir = root_dir + setup_ctx["SETUP_DIR"]
         self.vkey_path = self.setup_dir + setup_ctx["VKEY_FILE_NAME"]
         self.pkey_path = self.setup_dir + setup_ctx["PKEY_FILE_NAME"]
         self.proving_scheme = setup_ctx["PROVING_SCHEME_NAME"]
@@ -29,12 +32,12 @@ class Zokrates:
             raise Exception("Unknown proving_scheme: {}".format(self.proving_scheme))
 
         proof_ctx = context["proof"]
-        self.proof_dir = program_root_dir + proof_ctx["PROOF_DIR"]
+        self.proof_dir = root_dir + proof_ctx["PROOF_DIR"]
         self.witness_path = self.proof_dir + proof_ctx["WITNESS_FILE_NAME"]
         self.proof_path = self.proof_dir + proof_ctx["PROOF_FILE_NAME"]
 
         verify_ctx = context["verify"]
-        self.verifier_dir = program_root_dir + verify_ctx["VERIFICATION_DIR"]
+        self.verifier_dir = root_dir + verify_ctx["VERIFICATION_DIR"]
         self.verifier_contract_path = self.verifier_dir + verify_ctx["CONTRACT_FILE_NAME"]
 
         self.zokrates_bin_path = self.config["zokrates"]["BIN_PATH"]
