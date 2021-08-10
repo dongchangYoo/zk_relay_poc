@@ -1,9 +1,10 @@
+import json
 import os
 import subprocess
 import toml
 from hashlib import sha256
 
-from zokrates_wrapper.utils import encode_zokrates_input, padding
+from zokrates_wrapper.utils import encode_zokrates_input, padding, double_hash_as_little, hex_to_word_array
 
 PROVING_SCHEME = ["g16", "pghr13", "gm17", "marli"]
 
@@ -122,26 +123,63 @@ class Zokrates:
 if __name__ == "__main__":
     zk = Zokrates("../conf/config.toml")
 
-    block0 = "0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49ffff001d1dac2b7c"
-    block1 = "010000006fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000982051fd1e4ba744bbbe680e1fee14677ba1a3c3540bf7b1cdb606e857233e0e61bc6649ffff001d01e36299"
-    block2 = "010000004860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000d5fdcc541e25de1c7a5addedf24858b8bb665c9f36ef744ee42c316022c90f9bb0bc6649ffff001d08d2bd61"
+    block645120 = "00e0ff2fd98ebb2a6aba647793c8851db51c9e79712332ca669a04000000000000000000a3e1762af56223c68eab02df4f65c6e982118f1a4aed87393ad553a221738a2d8b7b435fea071017acc0cd5c"
+    block645134 = "00e0ff3f38d2e594d34003865fb5d1792fcd2ec48ce3e68a4fd100000000000000000000b6b5a4db44ffb0f3ebbaadc6defe39d19f0356f1e86ac76312e8fd4cde8691300a28565fea0710174c711a2e"
+    block647135 = "00000020b12693ef5d5e06d1a8f989f7b3b50eaa1f9ea2deecc00e0000000000000000000450368c5f84ae83ecb8e7f59096a11dd85c4664dea2990f4302edcae1957ac94b2a565fea071017345cf613"
+    block647136 = "0000402006ab8f2d0115e32b99b9ca020c8ed149aa5c92aac75706000000000000000000f25a11bb8e935667a49e32e9247aca7f9d63a7c1e506891e16fa41680c5e2b76282c565f123a101749e4a793"
 
-    reference_target = block1[-16:-8]
-    prev_hash = sha256(sha256(bytes.fromhex(block0)).digest()).digest().hex()
-    target_block = padding(block1)
+    epoch_head_time = block645120[-24:-16]
+    epoch_head_bits = block645120[-16:-8]
+    epoch_tail_time = block647135[-24:-16]
+    next_epoch_head_bits = block647136[-16:-8]
+    print(epoch_head_time)
+    print(epoch_tail_time)
+    print(epoch_head_bits)
+    print(next_epoch_head_bits)
 
-    encoded_input = encode_zokrates_input(reference_target, prev_hash, target_block)
+    encoded_input = list()
+    encoded_input.append(int(epoch_head_time, 16))
+    encoded_input.append(int(epoch_head_bits, 16))
+    encoded_input.append(int(epoch_tail_time, 16))
 
     zk.integrated_setup()
     zk.prove(encoded_input)
-    # zk.export_verifier()
 
 
 
-
-    # first_block_epoch = block0[-32:]  # 128
-    # prev_block_hash = double_hash(block0)  # 256
-    # intermediate_blocks = block1  # 640
-    # final_block = block2  # 640
+    # f2_prev_hash = [double_hash_as_little(block645134)[0:32], double_hash_as_little(block645134)[32:64]]
+    # u32_32_intermediate_blocks = hex_to_word_array(padding(block647135))
+    # f5_final_block = [block647136[0:32], block647136[32:64], block647136[64:96], block647136[96: 128], block647136[128:160]]
     #
-    # encoded_input = encode_zokrates_input(first_block_epoch, prev_block_hash, intermediate_blocks, final_block)
+    # encoded_input = list()
+    # encoded_input.append(int(epoch_head_time_and_bits, 16))
+    # encoded_input += [int(item, 16) for item in f2_prev_hash]
+    # encoded_input += u32_32_intermediate_blocks
+    # encoded_input += [int(item, 16) for item in f5_final_block]
+
+
+    # epoch_head = block645120[-32:]
+    # epoch_tail = block647135[-32:]
+    # next_epoch_head = block647136[-32:]
+    #
+    # encoded_input = list()
+    # encoded_input.append(int(epoch_head, 16))
+    # encoded_input.append(int(epoch_tail, 16))
+    # encoded_input.append(int(next_epoch_head, 16))
+
+    # encoded_input = list()
+    # encoded_input.append(0xffff * 256 ** (0x1d - 3))
+    # zk.integrated_setup()
+    # zk.prove(encoded_input)
+    # with open("../data/proof/proof.json") as json_data:
+    #     inputs = json.load(json_data)["inputs"]
+
+    # print(" r: {}".format(inputs[1]))
+    # print(" q: {}".format(inputs[2]))
+    # print("qq: {}".format(hex(0xffff * 256 ** (0x1d - 3) // 1209600)))
+    # if int(inputs[2], 16) == 0xffff * 256 ** (0x1d - 3) // 1209600:
+    #     print("true")
+    # else:
+    #     print("false")
+
+    # zk.export_verifier()

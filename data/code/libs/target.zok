@@ -1,0 +1,43 @@
+import "utils/casts/u32_to_bits.zok" as u32_to_bits
+import "utils/pack/bool/pack256.zok" as pack256
+import "utils/casts/u32_to_field.zok" as u32_to_field
+import "utils/casts/u64_from_bits.zok" as u64_from_bits
+from "./to_big_endian.zok" import u32_to_big_endian as to_big_endian
+import "./div_int.zok" as div_int
+
+
+
+def pack_target(u32 bits) -> (field):
+    u32 exp = bits & 4278190080     // 0xff000000
+    u32 coef = bits & 16777215      // 0x00ffffff
+    bool[32] coef_bools = u32_to_bits(coef)
+
+    field result = \
+    if exp == 385875968 then pack256([...[false; 64], ...coef_bools, ...[false; 160]]) else \
+      if exp == 402653184 then pack256([...[false; 56], ...coef_bools, ...[false; 168]]) else \
+        if exp == 419430400 then pack256([...[false; 48], ...coef_bools, ...[false; 176]]) else \
+          if exp == 436207616 then pack256([...[false; 40], ...coef_bools, ...[false; 184]]) else \
+            if exp == 452984832 then pack256([...[false; 32], ...coef_bools, ...[false; 192]]) else \
+              if exp == 469762048 then pack256([...[false; 24], ...coef_bools, ...[false; 200]]) else \
+                if exp == 486539264 then pack256([...[false; 16], ...coef_bools, ...[false; 208]]) else \
+                  if exp == 503316480 then pack256([...[false; 8], ...coef_bools, ...[false; 216]]) else \
+                    pack256([...coef_bools, ...[false; 224]]) \
+                  fi \
+                fi \
+              fi \
+            fi \
+          fi \
+        fi \
+      fi \
+    fi
+return result
+
+def main(u32 epoch_head_time, u32 epoch_head_bits, u32 epoch_tail_time) -> (field):
+    field time_head = u32_to_field(to_big_endian(epoch_head_time))
+    field time_tail = u32_to_field(to_big_endian(epoch_tail_time))
+    field time_delta = time_tail - time_head
+
+    field current_target = pack_target(to_big_endian(epoch_head_bits))
+    field expanded_current_target = current_target * time_delta
+    field r, field q = div_int(expanded_current_target)
+    return q

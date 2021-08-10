@@ -6,7 +6,7 @@ STDLIB_PATH = "/Users/dc/research_project/ZoKrates/zokrates_stdlib/stdlib"
     ROOT_DIR = "/Users/dc/research_project/zk_relay_poc/data/"
     [context.program]
     CODE_DIR = "code/"
-    CODE_FILE_NAME = "validate_batch1.zok"
+    CODE_FILE_NAME = "libs/target.zok"
     PROGRAM_FILE_NAME = "test"
     [context.setup]
     SETUP_DIR = "setup/"

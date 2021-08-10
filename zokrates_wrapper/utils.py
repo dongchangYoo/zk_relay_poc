@@ -1,6 +1,13 @@
-def double_hash_as_little(pre: str) -> str:
-    pre_bytes = bytes.fromhex(pre)
-    return sha256(sha256(pre_bytes).digest()).digest().hex()
+from hashlib import sha256
+from typing import Union
+
+
+def double_hash_as_little(pre: Union[str, bytes]) -> str:
+    if isinstance(pre, str):
+        pre = bytes.fromhex(pre)
+    elif not isinstance(pre, bytes):
+        raise Exception("pre-image should has bytes or str types")
+    return sha256(sha256(pre).digest()).digest().hex()
 
 
 def double_hash_as_big(pre: str) -> str:

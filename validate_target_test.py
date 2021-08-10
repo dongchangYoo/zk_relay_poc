@@ -66,28 +66,38 @@ def target_floor(target: int):
     return target & coef_mask
 
 
+def div_1209600(target: int) -> (int, int):
+    divisor = 1209600
+    quate = 0
+    for i in range(232, -1, -1):
+        if 1209600 << i <= target:
+            quate = (quate | (1 << i)) if 1209600 << i <= target else quate
+            target = target - (1209600 << i) if (1209600 << i) <= target else target
+            print(i)
+    return target, quate
+
+
+def div_1209600_zokrates(target: int) -> (int, int):
+    divisor = 1209600
+    quate = 0
+    j = 232 - 29
+    expanded_one = 2 ** j
+    expanded_divisor = divisor * expanded_one
+    condition = True if expanded_divisor <= target else False
+    quate = quate + expanded_one if condition else quate
+    target = target - expanded_divisor if condition else target
+    return target, quate
+
+
 if __name__ == "__main__":
-    # test_epoch_head = "4b1e5e4a29ab5f49ffff001d1dac2b7c"
-    # test_epoch_tail = "57233e0e61bc6649ffff001d01e36299"
-    # test_next_head = "22c90f9bb0bc6649ffff001d08d2bd61"
+    max_target = 26959535291011309493156476344723991336010898738574164086137773096960 # 0xffff * 256 ** (0x1d - 3)
+    max_target_hex = hex(max_target)
+    target = 1859734526474102007161661283304481249417820354151186432
+    target_hex = hex(target)
 
-    # test_epoch_head = "4b1e5e4a29ab5f49ffff001d1dac2b7c"
-    # test_epoch_tail = "13cd8ca26c087f49ffff001d30b73231"
-    # test_next_head = "6b6d2c576b0e7f49ffff001d33f0192f"
+    remainder, quate = div_1209600_zokrates(max_target)
+    print(hex(quate))
+    print(hex(max_target // 1209600))
 
-    # test_epoch_head = "0a63cb5374caaf53d15f4118dd7834fb"
-    # test_epoch_tail = "74c13ea150b2c153d15f4118738fb8f9"
-    # test_next_head = "58629ce886bdc153e66b3f18c7e8c140"
-    #
-    # result_valid, result_current_target = validate_target(test_epoch_head, test_epoch_tail, test_next_head)
-    # print(result_valid)
-    # print(result_current_target)
-
-    bits = 0x171398ce
-    target1 = 1877009475827353279654828838027187714710153476809162752
-    target2 = 0x98ce0000000000000000000000000000000000000000
-    offset = 123123
-
-    result = target_floor(target2 + offset)
-    print(hex(result))
-
+    # expected_quata = "0xddeadeadeadeadeadeadeadeadeadeadeadeade"
+    # print(expected_quata)

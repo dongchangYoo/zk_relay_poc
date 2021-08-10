@@ -131,6 +131,7 @@ dmypy.json
 # project out files
 /data/proof/*
 /data/setup/*
+/data/zok_program/*
 /data/verify/*
 
 
