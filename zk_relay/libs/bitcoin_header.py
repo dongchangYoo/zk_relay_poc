@@ -85,6 +85,12 @@ class Header:
     def height(self) -> int:
         return self._height
 
+    @property
+    def target(self) -> int:
+        exp = (self.bits & 0xff000000) >> 24
+        coef = self.bits & 0x00ffffff
+        return coef * 256 ** (exp - 3)
+
     @version.setter
     def version(self, value: int):
         if isinstance(value, int):
