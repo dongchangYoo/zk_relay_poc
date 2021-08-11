@@ -1,0 +1,15 @@
+import "utils/casts/u32_to_field.zok" as u32_to_field
+from "./to_big_endian.zok" import u32_to_big_endian as to_big_endian
+import "./div_int.zok" as div_int
+import "./pack_target.zok" as pack_target
+
+
+def main(u32 epoch_head_time, u32 epoch_head_bits, u32 epoch_tail_time) -> (field):
+    field time_head = u32_to_field(to_big_endian(epoch_head_time))
+    field time_tail = u32_to_field(to_big_endian(epoch_tail_time))
+    field time_delta = time_tail - time_head
+
+    field current_target = pack_target(to_big_endian(epoch_head_bits))
+    field expanded_current_target = current_target * time_delta
+    field r, field q = div_int(expanded_current_target)
+    return q

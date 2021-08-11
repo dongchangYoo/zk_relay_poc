@@ -179,5 +179,5 @@ if __name__ == "__main__":
     encoded_input.append(convert_endian(epoch_head_bits))
     encoded_input.append(convert_endian(epoch_tail_time))
 
-    # zk.integrated_setup()
+    zk.integrated_setup()
     zk.prove(encoded_input)
