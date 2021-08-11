@@ -10,6 +10,7 @@ STDLIB_PATH = "/Users/dc/research_project/ZoKrates/zokrates_stdlib/stdlib"
     [context.program]
     PROGRAM_DIR = "zok_program/"
     PROGRAM_FILE_NAME = "test"
+    ABI_FILE_NAME = "abi.json"
     [context.setup]
     SETUP_DIR = "setup/"
     VKEY_FILE_NAME = "verification.key"

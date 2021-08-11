@@ -4,6 +4,7 @@ import subprocess
 import toml
 
 PROVING_SCHEME = ["g16", "pghr13", "gm17", "marli"]
+DEBUG_MODE = True
 
 
 class Zokrates:
@@ -19,6 +20,7 @@ class Zokrates:
         prog_ctx = context["program"]
         self.prog_dir = root_dir + prog_ctx["PROGRAM_DIR"]
         self.prog_path = self.prog_dir + prog_ctx["PROGRAM_FILE_NAME"]
+        self.abi_path = self.prog_dir + prog_ctx["ABI_FILE_NAME"]
 
         setup_ctx = context["setup"]
         self.setup_dir = root_dir + setup_ctx["SETUP_DIR"]
@@ -40,6 +42,22 @@ class Zokrates:
         self.zokrates_bin_path = self.config["zokrates"]["BIN_PATH"]
         self.zokrates_std_lib_path = self.config["zokrates"]["STDLIB_PATH"]
 
+    @staticmethod
+    def mk_dir(dir_path: str):
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
+
+    @staticmethod
+    def run_zokrates(cmd_name: str, cmd: list, debug: bool = False):
+        print(">> {} starts".format(cmd_name))
+        if debug:
+            if subprocess.run(cmd).returncode != 0:
+                raise Exception(cmd_name + " error")
+        else:
+            if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
+                raise Exception(cmd_name + " error")
+        return True
+
     def integrated_setup(self):
         self.compile()
         self.setup()
@@ -49,75 +67,90 @@ class Zokrates:
         self.generate_proof()
 
     def compile(self):
+        # set zokrates command
         cmd = [self.zokrates_bin_path, "compile"]
+
+        # set zokrates code path
+        Zokrates.mk_dir(self.code_dir)
         cmd += ["-i", self.code_path]
-        if not os.path.exists(self.code_dir):
-            os.mkdir(self.code_dir)
+
+        # set r1cs program path
+        Zokrates.mk_dir(self.prog_dir)
         cmd += ["-o", self.prog_path]
+        cmd += ["-s", self.abi_path]
+
+        # set standard library path
         cmd += ["--stdlib-path", self.zokrates_std_lib_path]
 
-        print(">> Compile the program to r1cs form.")
-        # if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
-        #     raise Exception("[err] compile error")
-        if subprocess.run(cmd).returncode != 0:
-            raise Exception("[err] compile error")
-        return True
+        # run the command
+        Zokrates.run_zokrates("compile", cmd, DEBUG_MODE)
 
     def setup(self):
+        # set zokrates command
         cmd = [self.zokrates_bin_path, "setup"]
+
+        # set r1cs program path
         cmd += ["-i", self.prog_path]
-        if not os.path.exists(self.setup_dir):
-            os.mkdir(self.setup_dir)
+
+        # set output files path
+        Zokrates.mk_dir(self.setup_dir)
         cmd += ["-p", self.pkey_path]
         cmd += ["-v", self.vkey_path]
+
+        # select proving scheme
         cmd += ["-s", self.proving_scheme]
 
-        print(">> Setup")
-        if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
-            raise Exception("[err] setup error")
-        return True
+        # run the command
+        Zokrates.run_zokrates("setup", cmd, DEBUG_MODE)
 
     def compute_witness(self, *args):
+        # set zokrates command
         cmd = [self.zokrates_bin_path, "compute-witness"]
+
+        # set r1cs program path
         cmd += ["-i", self.prog_path]
-        if not os.path.exists(self.proof_dir):
-            os.mkdir(self.proof_dir)
+
+        # set witness path
+        Zokrates.mk_dir(self.proof_dir)
         cmd += ["-o", self.witness_path]
+
+        # set and encode input
         cmd += ["-a"] + [str(item) for item in args[0]]
 
-        print(">> compute_witness")
-        if subprocess.run(cmd).returncode != 0:
-            raise Exception("[err] compute_witness error")
-        return True
+        # run the command
+        Zokrates.run_zokrates("compute_witness", cmd, DEBUG_MODE)
 
     def generate_proof(self):
+        # set zokrates command
         cmd = [self.zokrates_bin_path, "generate-proof"]
+
+        # set r1cs program path
         cmd += ["-i", self.prog_path]
+
+        # set parameters
         cmd += ["-p", self.pkey_path]
         cmd += ["-w", self.witness_path]
         cmd += ["-s", self.proving_scheme]
-        if not os.path.exists(self.proof_dir):
-            os.mkdir(self.proof_dir)
         cmd += ["-j", self.proof_path]
 
-        print(">> generate_proof")
-        if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
-            raise Exception("[err] generate_proof error")
-        return True
+        # run the command
+        Zokrates.run_zokrates("generate_proof", cmd, DEBUG_MODE)
 
     def export_verifier(self, curve_name: str = "bn128"):
+        # set zokrates command
         cmd = [self.zokrates_bin_path, "export-verifier"]
+
+        # set parameters
         cmd += ["-i", self.vkey_path]
         cmd += ["-s", self.proving_scheme]
         cmd += ["-c", curve_name]
-        if not os.path.exists(self.verifier_dir):
-            os.mkdir(self.verifier_dir)
+
+        # set verifier contract path
+        Zokrates.mk_dir(self.verifier_dir)
         cmd += ["-o", self.verifier_contract_path]
 
-        print(">> export_verifier")
-        if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
-            raise Exception("[err] export_verifier error")
-        return True
+        # run the command
+        Zokrates.run_zokrates("export_verifier", cmd, DEBUG_MODE)
 
 
 if __name__ == "__main__":
@@ -132,10 +165,6 @@ if __name__ == "__main__":
     epoch_head_bits = block645120[-16:-8]
     epoch_tail_time = block647135[-24:-16]
     next_epoch_head_bits = block647136[-16:-8]
-    print(epoch_head_time)
-    print(epoch_tail_time)
-    print(epoch_head_bits)
-    print(next_epoch_head_bits)
 
     encoded_input = list()
     encoded_input.append(int(epoch_head_time, 16))
