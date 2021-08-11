@@ -51,10 +51,23 @@ def padding(value: str):
     return value[:] + "80" + "00" * zeros + bit_len_hex
 
 
+def convert_endian(value: Union[int, bytes, str]) -> Union[int, bytes, str]:
+    if isinstance(value, int):
+        target = bytes.fromhex(hex(value)[2:])
+        return int(target[::-1].hex(), 16)
+    elif isinstance(value, bytes):
+        target = value
+        return target[::-1]
+    elif isinstance(value, str):
+        target = bytes.fromhex(value)
+        return target[::-1].hex()
+    else:
+        raise Exception("Expected type of input {}, but {}".format("Union[int, bytes, str]", type(value)))
+
+
 if __name__ == "__main__":
-    test1 = "a76dd73790def7b57776f22fa211d19cf43121a709a37eaeda17230eaac258f5"
-    test2 = "0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49ffff001d1dac2b7c"
-    print(padding(test1))
+    result = convert_endian(0x112233)
+    print(hex(result))
 
 
 
