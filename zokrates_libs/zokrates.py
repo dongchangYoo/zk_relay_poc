@@ -4,6 +4,7 @@ import subprocess
 import toml
 
 from zk_relay.libs.bitcoin_header import Header
+from zokrates_libs.utils import convert_endian
 
 PROVING_SCHEME = ["g16", "pghr13", "gm17", "marli"]
 DEBUG_MODE = True
@@ -163,16 +164,20 @@ if __name__ == "__main__":
     header647135 = Header.from_raw_str("00000020b12693ef5d5e06d1a8f989f7b3b50eaa1f9ea2deecc00e0000000000000000000450368c5f84ae83ecb8e7f59096a11dd85c4664dea2990f4302edcae1957ac94b2a565fea071017345cf613")
     header647136 = Header.from_raw_str("0000402006ab8f2d0115e32b99b9ca020c8ed149aa5c92aac75706000000000000000000f25a11bb8e935667a49e32e9247aca7f9d63a7c1e506891e16fa41680c5e2b76282c565f123a101749e4a793")
 
-    epoch_head_time = block645120[-24:-16]
-    epoch_head_bits = block645120[-16:-8]
-    epoch_tail_time = block647135[-24:-16]
-    next_epoch_head_bits = block647136[-16:-8]
+    epoch_head_time = header645120.time
+    epoch_head_bits = header645120.bits
+    epoch_tail_time = header647135.time
+    next_epoch_head_bits = header647136.bits
+
+    print("<expected>")
+    print(" - ct: {}".format(header645120.target))
+    print(" - td: {}".format(header647135.time - header645120.time))
+    print(" - ut: {}".format(hex(header645120.target * (header647135.time - header645120.time) // 1209600)))
 
     encoded_input = list()
-    encoded_input.append(int(epoch_head_time, 16))
-    encoded_input.append(int(epoch_head_bits, 16))
-    encoded_input.append(int(epoch_tail_time, 16))
+    encoded_input.append(convert_endian(epoch_head_time))
+    encoded_input.append(convert_endian(epoch_head_bits))
+    encoded_input.append(convert_endian(epoch_tail_time))
 
-    zk.integrated_setup()
+    # zk.integrated_setup()
     zk.prove(encoded_input)
-
