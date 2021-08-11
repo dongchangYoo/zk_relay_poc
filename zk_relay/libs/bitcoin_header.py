@@ -137,6 +137,25 @@ class Header:
         ret["height"] = self.height
         return ret
 
+    def raw_parse_by_element_name(self, element_name: str) -> bytes:
+        if element_name == "version":
+            return self.__version[::-1]
+        elif element_name == "prev_hash":
+            return self.__prev_hash[::-1]
+        elif element_name == "merkle_root":
+            return self.__merkle_root[::-1]
+        elif element_name == "time":
+            return self.__time[::-1]
+        elif element_name == "bits":
+            return self.__bits[::-1]
+        elif element_name == "nonce":
+            return self.__nonce[::-1]
+        raise Exception("Unknown element")
+
+    def get_word_of_single_word(self, who: int) -> bytes:
+        raw_header = self.serialize()
+        return raw_header[who * 16: (who + 1) * 16]
+
 
 class HeaderTest(TestCase):
     block645120_str = "00e0ff2fd98ebb2a6aba647793c8851db51c9e79712332ca669a04000000000000000000a3e1762af56223c68eab02df4f65c6e982118f1a4aed87393ad553a221738a2d8b7b435fea071017acc0cd5c"
