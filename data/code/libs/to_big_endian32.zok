@@ -1,0 +1,6 @@
+import "utils/casts/u32_to_bits.zok" as u32_to_bits
+import "utils/casts/u32_from_bits.zok" as u32_from_bits
+
+def main(u32 value) -> (u32):
+    bool[32] bits = u32_to_bits(value)
+    return u32_from_bits([...bits[24..32],...bits[16..24],...bits[8..16],...bits[0..8]])

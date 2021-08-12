@@ -1,13 +1,7 @@
-import "utils/casts/u32_to_bits.zok" as u32_to_bits
-import "utils/casts/u32_from_bits.zok" as u32_from_bits
 import "utils/casts/u32_8_to_bool_256.zok" as u32_8_to_bits
 import "utils/casts/bool_256_to_u32_8.zok" as u32_8_from_bits
 
-def u32_to_big_endian(u32 value) -> (u32):
-    bool[32] bits = u32_to_bits(value)
-    return u32_from_bits([...bits[24..32],...bits[16..24],...bits[8..16],...bits[0..8]])
-
-def u32_8_to_big_endian(u32[8] value) -> (u32[8]):
+def main(u32[8] value) -> (u32[8]):
     bool[256] bits = u32_8_to_bits(value)
     return u32_8_from_bits([
        ...bits[248..256],

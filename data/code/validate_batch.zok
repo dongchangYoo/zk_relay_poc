@@ -1,141 +1,74 @@
-import "utils/casts/u32_to_bits.zok" as u32_to_bits
-import "utils/casts/u32_from_bits.zok" as u32_from_bits
-import "utils/casts/u32_8_to_bool_256.zok" as u32_8_to_bits
-import "utils/casts/bool_256_to_u32_8.zok" as u32_8_from_bits
-import "utils/casts/u32_to_field.zok" as u32_to_field
-
-import "utils/pack/u32/pack128.zok" as pack128
-import "utils/pack/u32/unpack128.zok" as unpack128 // not used
 import "utils/pack/u32/pack256.zok" as pack256
-import "utils/pack/u32/nonStrictUnpack256.zok" as unpack256 // not used
-
-import "utils/pack/bool/pack128.zok" as pack128
-import "utils/pack/bool/unpack128.zok" as boolunpack128  // not used
-import "utils/pack/bool/pack256.zok" as pack256
-import "utils/pack/bool/nonStrictUnpack256.zok" as unpack256 // not used
+import "utils/pack/u32/nonStrictUnpack256.zok" as unpack256
+import "utils/pack/u32/pack128.zok" as pack128
+import "utils/pack/u32/unpack128.zok" as unpack128
 
 import "hashes/sha256/1024bit.zok" as sha256for1024
 import "hashes/sha256/512bit.zok" as sha256for512
 
-// TODO refactoring done
-def toBigEndian(u32 value) -> (u32):
-    bool[32] bits = u32_to_bits(value)
-    return u32_from_bits([...bits[24..32],...bits[16..24],...bits[8..16],...bits[0..8]])
+import "./libs/pack_target.zok" as pack_target
+import "./libs/update_target.zok" as update_target
+import "./libs/to_big_endian256.zok" as to_big_endian256
+import "./libs/to_big_endian32.zok" as to_big_endian32
 
-def toBigEndian(u32[8] value) -> (u32[8]):
-    bool[256] bits = u32_8_to_bits(value)
-    return u32_8_from_bits([
-       ...bits[248..256],
-       ...bits[240..248],
-       ...bits[232..240],
-       ...bits[224..232],
-       ...bits[216..224],
-       ...bits[208..216],
-       ...bits[200..208],
-       ...bits[192..200],
-       ...bits[184..192],
-       ...bits[176..184],
-       ...bits[168..176],
-       ...bits[160..168],
-       ...bits[152..160],
-       ...bits[144..152],
-       ...bits[136..144],
-       ...bits[128..136],
-       ...bits[120..128],
-       ...bits[112..120],
-       ...bits[104..112],
-       ...bits[96..104],
-       ...bits[88..96],
-       ...bits[80..88],
-       ...bits[72..80],
-       ...bits[64..72],
-       ...bits[56..64],
-       ...bits[48..56],
-       ...bits[40..48],
-       ...bits[32..40],
-       ...bits[24..32],
-       ...bits[16..24],
-       ...bits[8..16],
-       ...bits[0..8]
-   ])
+
 
 // TODO
-def packTarget(u32 bits) -> (field):
-    u32 exp = bits & 4278190080
-    u32 coef = bits & 16777215
-    bool[32] coef_bools = u32_to_bits(coef)
+def validate_block_header(u32 expected_bits, u32[8] expected_prev_hash, u32[32] target_block) -> (u32[8]):
+    u32[8] target_prev_hash = target_block[1..9]
+    u32 target_bits = target_block[18]
 
-    field result = \
-    if exp == 23 then pack128([...[true; 72], ...coef_bools[8..32], ...[true; 32]]) else \
-      if exp == 24 then pack128([...[true; 64], ...coef_bools[8..32], ...[true; 40]]) else \
-        if exp == 25 then pack128([...[true; 56], ...coef_bools[8..32], ...[true; 48]]) else \
-          if exp == 26 then pack128([...[true; 48], ...coef_bools[8..32], ...[true; 56]]) else \
-            if exp == 27 then pack128([...[true; 40], ...coef_bools[8..32], ...[true; 64]]) else \
-              if exp == 28 then pack128([...[true; 32], ...coef_bools[8..32], ...[true; 72]]) else \
-                if exp == 29 then pack128([...[true; 24], ...coef_bools[8..32], ...[true; 80]]) else \
-                  if exp == 30 then pack128([...[true; 16], ...coef_bools[8..32], ...[true; 88]]) else \
-                    if exp == 31 then pack128([...[true; 8], ...coef_bools[8..32], ...[true; 96]]) else \
-                    pack128([true; 128]) fi \
-                  fi \
-                fi \
-              fi \
-            fi \
-          fi \
-        fi \
-      fi \
-    fi
-return result
+    /* Check previous hash of target_block */
+    assert(target_prev_hash[0] == expected_prev_hash[0])
+    assert(target_prev_hash[1] == expected_prev_hash[1])
+    assert(target_prev_hash[2] == expected_prev_hash[2])
+    assert(target_prev_hash[3] == expected_prev_hash[3])
+    assert(target_prev_hash[4] == expected_prev_hash[4])
+    assert(target_prev_hash[5] == expected_prev_hash[5])
+    assert(target_prev_hash[6] == expected_prev_hash[6])
+    assert(target_prev_hash[7] == expected_prev_hash[7])
 
-// TODO
-def validate_target(u32 epoch_head, u32 epoch_tail, u32 next_bits) -> (field, field):
-    field time_head = u32_to_field(toBigEndian(epoch_head))
-    field time_tail = u32_to_field(toBigEndian(epoch_tail))
-    field time_delta = time_tail - time_head
+    /* Calculate hash of target_block */
+    u32[8] intermediary_image = sha256for1024(target_block[0..8], target_block[8..16], target_block[16..24], target_block[24..32])
+    u32[8] block_hash = sha256for512(intermediary_image, [2147483648, ...[0; 6], 256])
 
-    field current_target = packTarget(toBigEndian(epoch_head))
-    field target_time_delta = 1209600
-    field simulated_target = current_target * time_delta / target_time_delta
+    /* Check bits of target_block */
+    assert(expected_bits == target_bits)
 
-    field latest_target = packTarget(toBigEndian(next_bits))
+    /* Check requirement of block hash */
+    field target = pack_target(to_big_endian32(target_bits))
+    assert(target > pack256(to_big_endian256(block_hash)))
 
-    return simulated_target, latest_target
-
-// TODO
-def validate_block_header(u32 reference_target, u32[8] prev_block_hash, u32[20] target_block) -> (u32[8]):
-    u32[8] encoded_prev_block_hash = target_block[1..9]
-    assert(encoded_prev_block_hash[0] == prev_block_hash[0])
-    assert(encoded_prev_block_hash[1] == prev_block_hash[1])
-    assert(encoded_prev_block_hash[2] == prev_block_hash[2])
-    assert(encoded_prev_block_hash[3] == prev_block_hash[3])
-    assert(encoded_prev_block_hash[4] == prev_block_hash[4])
-    assert(encoded_prev_block_hash[5] == prev_block_hash[5])
-    assert(encoded_prev_block_hash[6] == prev_block_hash[6])
-    assert(encoded_prev_block_hash[7] == prev_block_hash[7])
-
-    u32 current_bits = target_block[18]
-    assert(reference_target == current_bits)
-
-    /* Calculate target block hash*/
-    u32[8] intermediary_image = sha256for1024(target_block[0..8], target_block[8..16], [...target_block[16..20], ...[0; 4]], [0; 8])
-    u32[8] block_hash = sha256for512(intermediary_image, [0; 8])
-
-    /* Calculate target value*/
-    field target = packTarget(toBigEndian(current_bits))
-
-    /* Check if block hash is less than or equals to target */
-    assert(target > pack256(toBigEndian(block_hash)))
     return block_hash
 
-def main(u32[4] first_block_epoch, u32[8] prev_block_hash, private u32[1][20] intermediate_blocks, u32[20] final_block) -> (field, field, field):
 
-    // target value of epoch start
-    u32 reference_target = first_block_epoch[2]
+def main(field epoch_head_time_and_bits, field prev_hash, private u32[1][32] intermediate_blocks, field[5] final_block) -> (u32[8]):
+    u32[4] tmp = unpack128(epoch_head_time_and_bits)
+    u32 epoch_head_time = tmp[2]
+    u32 epoch_head_bits = tmp[3]
+
+    u32[8] packed_prev_hash = unpack256(prev_hash)
+    u32[32] padded_final_block = [
+        ...unpack128(final_block[0]),
+        ...unpack128(final_block[1]),
+        ...unpack128(final_block[2]),
+        ...unpack128(final_block[3]),
+        ...unpack128(final_block[4]),
+        2147483648, ...[0; 10], 640
+    ]
+
     // validate headers
-    u32[8] block_hash = validate_block_header(reference_target, prev_block_hash, intermediate_blocks[0])
-    block_hash = validate_block_header(final_block[18], block_hash, final_block)
-    field final_block_hash = pack256(block_hash)
+    u32[8] block_hash = validate_block_header(epoch_head_bits, packed_prev_hash, intermediate_blocks[0])
+    // ...
+    // ...
+
+    // validate final block header
+    // u32 next_bits = u32_32_final_block[18]
+    // u32[8] final_hash = validate_block_header(next_bits, block_hash, padded_final_block)
+    // field final_block_hash = pack256(final_hash)
 
     // validate target
-    field simulated_target, field latest_target = validate_target(first_block_epoch[1], intermediate_blocks[0][17], final_block[18])
+    //field simulated_target = update_target(epoch_head_time, epoch_head_bits, intermediate_blocks[0][17])
 
-    return final_block_hash, simulated_target, latest_target
+    // return final_block_hash //, simulated_target
+    return block_hash
