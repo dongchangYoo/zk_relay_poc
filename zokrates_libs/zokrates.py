@@ -4,7 +4,7 @@ import subprocess
 import toml
 
 from zk_relay.libs.bitcoin_header import Header
-from zokrates_libs.utils import convert_endian
+from zokrates_libs.utils import convert_endian, padding, split_hex_to_int_array
 
 PROVING_SCHEME = ["g16", "pghr13", "gm17", "marli"]
 DEBUG_MODE = True
@@ -156,7 +156,7 @@ class Zokrates:
         Zokrates.run_zokrates("export_verifier", cmd, DEBUG_MODE)
 
 
-if __name__ == "__main__":
+def zokrates_target_test():
     zk = Zokrates("../conf/config.toml")
 
     header645120 = Header.from_raw_str("00e0ff2fd98ebb2a6aba647793c8851db51c9e79712332ca669a04000000000000000000a3e1762af56223c68eab02df4f65c6e982118f1a4aed87393ad553a221738a2d8b7b435fea071017acc0cd5c")
@@ -178,6 +178,55 @@ if __name__ == "__main__":
     encoded_input.append(convert_endian(epoch_head_time))
     encoded_input.append(convert_endian(epoch_head_bits))
     encoded_input.append(convert_endian(epoch_tail_time))
+
+    zk.integrated_setup()
+    zk.prove(encoded_input)
+
+
+def zokrates_header_test():
+    zk = Zokrates("../conf/config.toml")
+
+    header645120 = Header.from_raw_str("00e0ff2fd98ebb2a6aba647793c8851db51c9e79712332ca669a04000000000000000000a3e1762af56223c68eab02df4f65c6e982118f1a4aed87393ad553a221738a2d8b7b435fea071017acc0cd5c")
+    header645134 = Header.from_raw_str("00e0ff3f38d2e594d34003865fb5d1792fcd2ec48ce3e68a4fd100000000000000000000b6b5a4db44ffb0f3ebbaadc6defe39d19f0356f1e86ac76312e8fd4cde8691300a28565fea0710174c711a2e")
+    header647135 = Header.from_raw_str("00000020b12693ef5d5e06d1a8f989f7b3b50eaa1f9ea2deecc00e0000000000000000000450368c5f84ae83ecb8e7f59096a11dd85c4664dea2990f4302edcae1957ac94b2a565fea071017345cf613")
+    header647136 = Header.from_raw_str("0000402006ab8f2d0115e32b99b9ca020c8ed149aa5c92aac75706000000000000000000f25a11bb8e935667a49e32e9247aca7f9d63a7c1e506891e16fa41680c5e2b76282c565f123a101749e4a793")
+
+    expected_bits: str = hex(convert_endian(header645120.bits))
+    prev_hash: str = convert_endian(header647135.prev_hash)
+    intermediate_blocks: str = padding(header647135.raw_header_str())
+
+    encoded_input = list()
+    encoded_input.append(int(expected_bits, 16))
+    encoded_input += split_hex_to_int_array(prev_hash, 4)
+    encoded_input += split_hex_to_int_array(intermediate_blocks, 4)
+
+    print(encoded_input)
+
+    zk.integrated_setup()
+    zk.prove(encoded_input)
+
+
+if __name__ == "__main__":
+    zk = Zokrates("../conf/config.toml")
+
+    header645120 = Header.from_raw_str("00e0ff2fd98ebb2a6aba647793c8851db51c9e79712332ca669a04000000000000000000a3e1762af56223c68eab02df4f65c6e982118f1a4aed87393ad553a221738a2d8b7b435fea071017acc0cd5c")
+    header645134 = Header.from_raw_str("00e0ff3f38d2e594d34003865fb5d1792fcd2ec48ce3e68a4fd100000000000000000000b6b5a4db44ffb0f3ebbaadc6defe39d19f0356f1e86ac76312e8fd4cde8691300a28565fea0710174c711a2e")
+    header647135 = Header.from_raw_str("00000020b12693ef5d5e06d1a8f989f7b3b50eaa1f9ea2deecc00e0000000000000000000450368c5f84ae83ecb8e7f59096a11dd85c4664dea2990f4302edcae1957ac94b2a565fea071017345cf613")
+    header647136 = Header.from_raw_str("0000402006ab8f2d0115e32b99b9ca020c8ed149aa5c92aac75706000000000000000000f25a11bb8e935667a49e32e9247aca7f9d63a7c1e506891e16fa41680c5e2b76282c565f123a101749e4a793")
+
+    epoch_head_time_and_bits: str = header645120.get_word_of_single_word(4).hex()
+    print(epoch_head_time_and_bits)
+    prev_hash: str = header647135.prev_hash  # big
+    intermediate_blocks: str = padding(header647135.raw_header_str())
+    final_block: str = header647136.raw_header_str()
+
+    encoded_input = list()
+    encoded_input.append(int(epoch_head_time_and_bits, 16))
+    encoded_input.append(int(prev_hash, 16))
+    encoded_input += split_hex_to_int_array(intermediate_blocks, 4)
+    encoded_input += split_hex_to_int_array(final_block, 16)
+
+    print(encoded_input)
 
     zk.integrated_setup()
     zk.prove(encoded_input)
