@@ -5,7 +5,7 @@ import "utils/pack/u32/unpack128.zok" as unpack128
 
 import "./libs/update_target.zok" as update_target
 import "./libs/to_big_endian256.zok" as to_big_endian256
-import "./validate_block_header.zok" as validate_block_header
+import "./libs/validate_block_header.zok" as validate_block_header
 
 
 def main(field epoch_head_time_and_bits, field prev_hash, private u32[1][32] intermediate_blocks, field[5] final_block) -> (field, field):
@@ -25,17 +25,20 @@ def main(field epoch_head_time_and_bits, field prev_hash, private u32[1][32] int
         2147483648, ...[0; 10], 640
     ]
 
+    u32 little_tail_time = intermediate_blocks[0][17]
+    u32 little_next_bits = little_final_block[18]
+
     // validate headers
-    u32[8] little_block_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[0])
+    little_prev_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[0])
     // ...
     // ...
 
     // validate final block header
     u32 next_bits = little_final_block[18]
-    u32[8] little_final_hash = validate_block_header(next_bits, little_block_hash, little_final_block)
-    field big_final_hash = pack256(to_big_endian256(little_final_hash))
+    u32[8] little_final_hash = validate_block_header(next_bits, little_prev_hash, little_final_block)
 
     // validate target
-    field big_updated_target = update_target(little_head_time, little_head_bits, intermediate_blocks[0][17])
+    field big_updated_target = update_target(little_head_time, little_head_bits, little_tail_time)
 
+    field big_final_hash = pack256(to_big_endian256(little_final_hash))
     return big_final_hash, big_updated_target

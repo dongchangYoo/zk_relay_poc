@@ -2,17 +2,6 @@ from hashlib import sha256
 from typing import Union
 
 
-def encode_zokrates_input(*arg) -> list:
-    encoded_inputs = list()
-    for item in arg:
-        encoded_inputs += hex_to_words(item)
-    return encoded_inputs
-
-
-def int_array_to_hex(targets: list) -> str:
-    return "".join([hex(item)[2:].zfill(8) for item in targets])
-
-
 # useful
 def double_hash_as_little(pre: Union[str, bytes]) -> str:
     if isinstance(pre, str):
@@ -69,12 +58,3 @@ def convert_endian(value: Union[int, bytes, str]) -> Union[int, bytes, str]:
         return target[::-1].hex()
     else:
         raise Exception("Expected type of input {}, but {}".format("Union[int, bytes, str]", type(value)))
-
-
-if __name__ == "__main__":
-    result = convert_endian(0x112233)
-    print(hex(result))
-
-
-
-

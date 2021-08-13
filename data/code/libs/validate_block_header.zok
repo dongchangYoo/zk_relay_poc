@@ -1,9 +1,9 @@
 import "utils/pack/u32/pack256.zok" as pack256
 import "hashes/sha256/1024bit.zok" as sha256for1024
 import "hashes/sha256/512bit.zok" as sha256for512
-import "./libs/pack_target.zok" as pack_target
-import "./libs/to_big_endian256.zok" as to_big_endian256
-import "./libs/to_big_endian32.zok" as to_big_endian32
+import "./pack_target.zok" as pack_target
+import "./to_big_endian256.zok" as to_big_endian256
+import "./to_big_endian32.zok" as to_big_endian32
 
 def main(u32 expected_bits, u32[8] expected_prev_hash, u32[32] target_block) -> (u32[8]):
     u32[8] target_prev_hash = target_block[1..9]
