@@ -9,8 +9,9 @@ import toml
 
 
 class Actor:
-    def __init__(self, btc_cli: BitcoinClient, zok_cli: Zokrates):
+    def __init__(self, btc_cli: BitcoinClient, zok_config_path: str):
         self.btc_cli = btc_cli
+        self.zok_cli = Zokrates(zok_config_path)
 
     def get_header_batch(self, from_height: int, to_height: int):
         headers = list()
@@ -26,7 +27,7 @@ class Actor:
         headers: list = self.get_header_batch(start_height, end_height)
         epoch_head_time_and_bits: str = epoch_head.get_word_of_single_word(4).hex()
 
-        prev_hash: str = headers[0].prev_hash  # big
+        prev_hash: str = headers[0].prev_hash.hex_as_be  # big
         intermediate_blocks: str = ""
         for i in range(0, len(headers) - 1):
             intermediate_blocks += padding(headers[i].raw_header_str())
@@ -44,28 +45,30 @@ class ActorTest(TestCase):
     def setUp(self):
         # initiate Bitcoin client
         config = toml.load("./rpc_config.toml")
-        self.cli = BitcoinClient(config["url"], config["id"], config["pwd"], config["wallet_name"])
+        self.btc_cli = BitcoinClient(config["url"], config["id"], config["pwd"], config["wallet_name"])
+        self.zok_config_path = "../conf/config.toml"
 
     def test_batch2(self):
         # init actor
-        actor = Actor(self.cli, 647135, 647136, 2)
+        actor = Actor(self.btc_cli, self.zok_config_path)
+
+        # setup zokrates program
+        actor.zok_cli.integrated_setup()
 
         # generate input of zokrates program
-        epoch_head, headers = actor.construct_batch()
-        encoded_input = actor.generate_inputs(epoch_head, headers)
-
-        expected = [44464440580593778464358404730717785436, 1413115512144597745417862046068109726134405896890164913, 32, 2972095471, 1566443217, 2834926071, 3014987434, 530490078, 3972009472, 0, 0, 72365708, 1602530947, 3971540981, 2425790749, 3629925988, 3735197967, 1124265418, 3784669897, 1261065823, 3926331415, 878507539, 2147483648, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 640, 1300611580146666036859639858579970, 16692286963318328199362419706042515456, 75004259440575824002881041129, 48489775222424419754234584628752695656, 16439693359090398983136057306418292627]
-        for i, item in enumerate(encoded_input):
-            self.assertEqual(item, expected[i])
+        encoded_input = actor.construct_batch(647135, 647136)
+        actor.zok_cli.prove(encoded_input)
 
     def test_batch7(self):
         # init actor
-        actor = Actor(self.cli, 647135, 647136, 2)
+        actor = Actor(self.btc_cli, self.zok_config_path)
+
+        # setup zokrates program
+        actor.zok_cli.integrated_setup()
 
         # generate input of zokrates program
-        epoch_head, headers = actor.construct_batch()
-        encoded_input = actor.generate_inputs(epoch_head, headers)
+        encoded_input = actor.construct_batch(647130, 647136)
+        actor.zok_cli.prove(encoded_input)
 
-        expected = [44464440580593778464358404730717785436, 1413115512144597745417862046068109726134405896890164913, 32, 2972095471, 1566443217, 2834926071, 3014987434, 530490078, 3972009472, 0, 0, 72365708, 1602530947, 3971540981, 2425790749, 3629925988, 3735197967, 1124265418, 3784669897, 1261065823, 3926331415, 878507539, 2147483648, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 640, 1300611580146666036859639858579970, 16692286963318328199362419706042515456, 75004259440575824002881041129, 48489775222424419754234584628752695656, 16439693359090398983136057306418292627]
-        for i, item in enumerate(encoded_input):
-            self.assertEqual(item, expected[i])
+        # generate input of zokrates program
+        encoded_input = actor.construct_batch(647130, 647136)
