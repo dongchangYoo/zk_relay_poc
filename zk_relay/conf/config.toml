@@ -3,7 +3,7 @@ BIN_PATH = "/Users/dc/research_project/ZoKrates/target/release/zokrates"
 STDLIB_PATH = "/Users/dc/research_project/ZoKrates/zokrates_stdlib/stdlib"
 
 [context]
-    ROOT_DIR = "/Users/dc/research_project/zk_relay_poc/data/"
+    ROOT_DIR = "/Users/dc/research_project/zk_relay_poc/zk_relay/data/"
     [context.code]
     CODE_DIR = "code/"
     CODE_FILE_NAME = "validate_batch7.zok"

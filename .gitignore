@@ -129,10 +129,10 @@ dmypy.json
 .pyre/
 
 # project out files
-/data/proof
-/data/setup
-/data/zok_program
-/data/verify
+/zk_relay/data/proof
+/zk_relay/data/setup
+/zk_relay/data/zok_program
+/zk_relay/data/verify
 /zk_relay/test/test_data
 
 

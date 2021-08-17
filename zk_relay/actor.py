@@ -46,7 +46,7 @@ class ActorTest(TestCase):
         # initiate Bitcoin client
         config = toml.load("./rpc_config.toml")
         self.btc_cli = BitcoinClient(config["url"], config["id"], config["pwd"], config["wallet_name"])
-        self.zok_config_path = "../conf/config.toml"
+        self.zok_config_path = "conf/config.toml"
 
     def test_batch2(self):
         # init actor
