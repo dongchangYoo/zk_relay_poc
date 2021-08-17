@@ -1,11 +1,11 @@
 from unittest import TestCase
 
-import toml
-
-from zk_relay.btclib.bitcoin_header import Header
-from zk_relay.btclib.btc_client import BitcoinClient
+from bitcoinpy.base.header import Header
+from bitcoinpy.client import BitcoinClient
 from zk_relay.utils import padding, split_hex_to_int_array
 from zokrates_libs.zokrates import Zokrates
+
+import toml
 
 
 class Actor:

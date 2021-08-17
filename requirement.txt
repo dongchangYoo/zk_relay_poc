@@ -1,1 +1,1 @@
-requests
+git+https://github.com/dongchangYoo/bitcoinpy.git#egg=bitcoinpy
