@@ -1,4 +1,4 @@
 id = "pilab"
 pwd = "HUcb?2VXABmTgJsHBs9n"
-url = "http://btc.chain.thebifrost.io"
+url = "http://btc.chain.thebifrost.io:8332"
 wallet_name = "btcUser"
