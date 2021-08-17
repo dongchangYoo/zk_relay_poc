@@ -29,15 +29,15 @@ def main(field epoch_head_time_and_bits, field prev_hash, private u32[6][32] int
     u32 little_next_bits = little_final_block[18]
 
     // validate intermediate headers
-    u32[8] little_prev_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[0])
-    little_block_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[1])
-    little_block_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[2])
-    little_block_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[3])
-    little_block_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[4])
-    little_block_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[5])
+    little_prev_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[0])
+    little_prev_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[1])
+    little_prev_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[2])
+    little_prev_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[3])
+    little_prev_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[4])
+    little_prev_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[5])
 
     // validate final block header
-    u32[8] little_final_hash = validate_block_header(little_next_bits, little_block_hash, little_final_block)
+    u32[8] little_final_hash = validate_block_header(little_next_bits, little_prev_hash, little_final_block)
 
     // validate target
     field big_updated_target = update_target(little_head_time, little_head_bits, little_tail_time)

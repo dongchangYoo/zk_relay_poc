@@ -133,6 +133,7 @@ dmypy.json
 /data/setup
 /data/zok_program
 /data/verify
+/zk_relay/test/test_data
 
 
 
