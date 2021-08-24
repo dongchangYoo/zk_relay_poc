@@ -129,11 +129,8 @@ dmypy.json
 .pyre/
 
 # project out files
-/zk_relay/data/proof
-/zk_relay/data/setup
-/zk_relay/data/zok_program
-/zk_relay/data/verify
-/zk_relay/bitcoin_mock/data
+/zk_relay/zok_src/data/
+/zk_relay/bitcoin_mock/data/
 
 
 

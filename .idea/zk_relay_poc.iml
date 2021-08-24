@@ -4,9 +4,9 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/venv" />
-      <excludeFolder url="file://$MODULE_DIR$/zk_relay/data/proof" />
-      <excludeFolder url="file://$MODULE_DIR$/zk_relay/data/setup" />
-      <excludeFolder url="file://$MODULE_DIR$/zk_relay/data/zok_program" />
+      <excludeFolder url="file://$MODULE_DIR$/zk_relay/zok_src/proof" />
+      <excludeFolder url="file://$MODULE_DIR$/zk_relay/zok_src/setup" />
+      <excludeFolder url="file://$MODULE_DIR$/zk_relay/zok_src/zok_program" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
