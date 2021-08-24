@@ -14,31 +14,26 @@ class Zokrates:
         context = self.config["context"]
         root_dir = context["ROOT_DIR"]
 
-        code_ctx = context["code"]
-        self.code_dir = root_dir + code_ctx["CODE_DIR"]
-        self.code_path = self.code_dir + code_ctx["CODE_FILE_NAME"]
+        ctx_code = context["code"]
+        self.code_dir = root_dir + ctx_code["CODE_DIR"]
+        self.code_path = self.code_dir + ctx_code["CODE_FILE_NAME"]
 
-        prog_ctx = context["program"]
-        self.prog_dir = root_dir + prog_ctx["PROGRAM_DIR"]
-        self.prog_path = self.prog_dir + prog_ctx["PROGRAM_FILE_NAME"]
-        self.abi_path = self.prog_dir + prog_ctx["ABI_FILE_NAME"]
+        ctx_data = context["data"]
+        self.data_dir = root_dir + ctx_data["DATA_DIR"]
+        self.prog_path = self.data_dir + ctx_data["PROGRAM_FILE_NAME"]
+        self.abi_path = self.data_dir + ctx_data["ABI_FILE_NAME"]
+        self.vkey_path = self.data_dir + ctx_data["VKEY_FILE_NAME"]
+        self.pkey_path = self.data_dir + ctx_data["PKEY_FILE_NAME"]
+        self.witness_path = self.data_dir + ctx_data["WITNESS_FILE_NAME"]
+        self.proof_path = self.data_dir + ctx_data["PROOF_FILE_NAME"]
 
-        setup_ctx = context["setup"]
-        self.setup_dir = root_dir + setup_ctx["SETUP_DIR"]
-        self.vkey_path = self.setup_dir + setup_ctx["VKEY_FILE_NAME"]
-        self.pkey_path = self.setup_dir + setup_ctx["PKEY_FILE_NAME"]
-        self.proving_scheme = setup_ctx["PROVING_SCHEME_NAME"]
+        self.proving_scheme = context["PROVING_SCHEME_NAME"]
         if self.proving_scheme not in PROVING_SCHEME:
             raise Exception("Unknown proving_scheme: {}".format(self.proving_scheme))
 
-        proof_ctx = context["proof"]
-        self.proof_dir = root_dir + proof_ctx["PROOF_DIR"]
-        self.witness_path = self.proof_dir + proof_ctx["WITNESS_FILE_NAME"]
-        self.proof_path = self.proof_dir + proof_ctx["PROOF_FILE_NAME"]
-
-        verify_ctx = context["verify"]
-        self.verifier_dir = root_dir + verify_ctx["VERIFICATION_DIR"]
-        self.verifier_contract_path = self.verifier_dir + verify_ctx["CONTRACT_FILE_NAME"]
+        ctx_contract = context["contract"]
+        self.contract_dir = root_dir + ctx_contract["CONTRACT_DIR"]
+        self.verifier_contract_path = self.contract_dir + ctx_contract["CONTRACT_FILE_NAME"]
 
         self.zokrates_bin_path = self.config["zokrates"]["BIN_PATH"]
         self.zokrates_std_lib_path = self.config["zokrates"]["STDLIB_PATH"]
@@ -64,7 +59,7 @@ class Zokrates:
         cmd += ["-i", self.code_path]
 
         # set r1cs program path
-        Zokrates.mk_dir(self.prog_dir)
+        Zokrates.mk_dir(self.data_dir)
         cmd += ["-o", self.prog_path]
         cmd += ["-s", self.abi_path]
 
@@ -82,7 +77,7 @@ class Zokrates:
         cmd += ["-i", self.prog_path]
 
         # set output files path
-        Zokrates.mk_dir(self.setup_dir)
+        Zokrates.mk_dir(self.data_dir)
         cmd += ["-p", self.pkey_path]
         cmd += ["-v", self.vkey_path]
 
@@ -100,11 +95,20 @@ class Zokrates:
         cmd += ["-i", self.prog_path]
 
         # set witness path
-        Zokrates.mk_dir(self.proof_dir)
+        Zokrates.mk_dir(self.data_dir)
         cmd += ["-o", self.witness_path]
 
         # set and encode input
-        cmd += ["-a"] + [str(item) for item in args]
+        encoded = list()
+        for arg in args:
+            if isinstance(arg, int):
+                encoded.append(str(arg))
+            elif isinstance(arg, list):
+                encoded += [str(item) for item in arg]
+            else:
+                raise Exception("Invalid Input: {}".format(arg))
+
+        cmd += ["-a"] + encoded
 
         # run the command
         return Zokrates.run_zokrates("compute_witness", cmd)
@@ -135,7 +139,7 @@ class Zokrates:
         cmd += ["-c", curve_name]
 
         # set verifier contract path
-        Zokrates.mk_dir(self.verifier_dir)
+        Zokrates.mk_dir(self.contract_dir)
         cmd += ["-o", self.verifier_contract_path]
 
         # run the command
