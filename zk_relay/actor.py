@@ -1,3 +1,5 @@
+import json
+
 from bitcoinpy.base.header import Header
 from bitcoinpy.client import BitcoinClient
 from zk_relay.utils import padding, split_hex_to_int_array
@@ -31,12 +33,26 @@ class Actor:
         return encoded_input
 
     def setup_and_export_verifier(self):
+        print(">>> setup...")
         self.zok_cli.integrated_setup()
+        print(">>> exporting verifier")
         self.zok_cli.export_verifier()
 
     def build_input_and_prove(self, from_height: int, end_height: int):
+        print(">>> build input to be entered to zokrates program")
         encoded_input = self.build_input(from_height, end_height)
+        print(">>> generate proof")
         self.zok_cli.prove(encoded_input)
+
+    def flatten_proof(self) -> str:
+        with open(self.zok_cli.proof_path, "r") as json_data:
+            proof_json = json.load(json_data)
+        proof = list()
+        proof.append(proof_json["proof"]["a"])
+        proof.append(proof_json["proof"]["b"])
+        proof.append(proof_json["proof"]["c"])
+        contract_input = [proof, proof_json["inputs"]]
+        return json.dumps(contract_input)[1:-1]
 
     def _get_header_batch(self, from_height: int, to_height: int):
         headers = list()
@@ -53,7 +69,7 @@ class ActorTest(TestCase):
         # initiate Bitcoin client
         config = toml.load("./rpc_config.toml")
         btc_cli = BitcoinClient(config["url"], config["id"], config["pwd"], config["wallet_name"])
-        zok_config_path = "conf/config.toml"
+        zok_config_path = "conf/config_base.toml"
         # init actor
         self.actor = Actor(btc_cli, zok_config_path)
 
