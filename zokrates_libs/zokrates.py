@@ -1,9 +1,11 @@
+import json
 import os
 import subprocess
+from unittest import TestCase
+
 import toml
 
 PROVING_SCHEME = ["g16", "pghr13", "gm17", "marli"]
-DEBUG_MODE = True
 
 
 class Zokrates:
@@ -41,6 +43,7 @@ class Zokrates:
         self.zokrates_bin_path = self.config["zokrates"]["BIN_PATH"]
         self.zokrates_std_lib_path = self.config["zokrates"]["STDLIB_PATH"]
 
+    # TODO need?
     def change_code(self, file_name: str):
         self.code_path = self.code_dir + file_name
 
@@ -52,7 +55,7 @@ class Zokrates:
         self.compute_witness(*args)
         self.generate_proof()
 
-    def compile(self):
+    def compile(self) -> str:
         # set zokrates command
         cmd = [self.zokrates_bin_path, "compile"]
 
@@ -69,9 +72,9 @@ class Zokrates:
         cmd += ["--stdlib-path", self.zokrates_std_lib_path]
 
         # run the command
-        Zokrates.run_zokrates("compile", cmd, DEBUG_MODE)
+        return Zokrates.run_zokrates("compile", cmd)
 
-    def setup(self):
+    def setup(self) -> str:
         # set zokrates command
         cmd = [self.zokrates_bin_path, "setup"]
 
@@ -87,9 +90,9 @@ class Zokrates:
         cmd += ["-s", self.proving_scheme]
 
         # run the command
-        Zokrates.run_zokrates("setup", cmd, DEBUG_MODE)
+        return Zokrates.run_zokrates("setup", cmd)
 
-    def compute_witness(self, *args):
+    def compute_witness(self, *args) -> str:
         # set zokrates command
         cmd = [self.zokrates_bin_path, "compute-witness"]
 
@@ -101,12 +104,12 @@ class Zokrates:
         cmd += ["-o", self.witness_path]
 
         # set and encode input
-        cmd += ["-a"] + [str(item) for item in args[0]]
+        cmd += ["-a"] + [str(item) for item in args]
 
         # run the command
-        Zokrates.run_zokrates("compute_witness", cmd, DEBUG_MODE)
+        return Zokrates.run_zokrates("compute_witness", cmd)
 
-    def generate_proof(self):
+    def generate_proof(self) -> str:
         # set zokrates command
         cmd = [self.zokrates_bin_path, "generate-proof"]
 
@@ -120,9 +123,9 @@ class Zokrates:
         cmd += ["-j", self.proof_path]
 
         # run the command
-        Zokrates.run_zokrates("generate_proof", cmd, DEBUG_MODE)
+        return Zokrates.run_zokrates("generate_proof", cmd)
 
-    def export_verifier(self, curve_name: str = "bn128"):
+    def export_verifier(self, curve_name: str = "bn128") -> str:
         # set zokrates command
         cmd = [self.zokrates_bin_path, "export-verifier"]
 
@@ -136,7 +139,7 @@ class Zokrates:
         cmd += ["-o", self.verifier_contract_path]
 
         # run the command
-        Zokrates.run_zokrates("export_verifier", cmd, DEBUG_MODE)
+        return Zokrates.run_zokrates("export_verifier", cmd)
 
     @staticmethod
     def mk_dir(dir_path: str):
@@ -144,12 +147,39 @@ class Zokrates:
             os.mkdir(dir_path)
 
     @staticmethod
-    def run_zokrates(cmd_name: str, cmd: list, debug: bool = False):
-        print(">> {} starts".format(cmd_name))
-        if debug:
-            if subprocess.run(cmd).returncode != 0:
-                raise Exception(cmd_name + " error")
-        else:
-            if subprocess.run(cmd, stdout=subprocess.PIPE).returncode != 0:
-                raise Exception(cmd_name + " error")
-        return True
+    def run_zokrates(cmd_name: str, cmd: list) -> str:
+        # print(">> {} starts".format(cmd_name))
+        return_obj = subprocess.run(cmd, stdout=subprocess.PIPE)
+        if return_obj.returncode != 0:
+            raise Exception(cmd_name + " error")
+        return return_obj.stdout.hex()
+
+
+class ZokratesTest(TestCase):
+    def setUp(self) -> None:
+        config_path = "test_config.toml"
+        self.zok = Zokrates(config_path)
+
+        Zokrates.mk_dir("./test_data")
+        with open("./test_data/example.zok", "w") as f:
+            f.write("""
+def main(private field a, field b) -> bool:
+    return a * a == b
+        """)
+
+    def tearDown(self) -> None:
+        """ remove all test files and directory at the end of the test"""
+        test_path = "./test_data"
+        if os.path.exists(test_path):
+            files = os.listdir("./test_data")
+            for file in files:
+                os.remove(test_path + "/" + file)
+            os.rmdir("./test_data/")
+
+    def test_compile(self):
+        """ raises exception in each process when the process fails """
+        self.zok.compile()
+        self.zok.setup()
+        self.zok.compute_witness(337, 113569)
+        self.zok.generate_proof()
+        self.zok.export_verifier()
