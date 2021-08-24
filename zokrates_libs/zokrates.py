@@ -148,7 +148,7 @@ class Zokrates:
     @staticmethod
     def mk_dir(dir_path: str):
         if not os.path.exists(dir_path):
-            os.mkdir(dir_path)
+            os.makedirs(dir_path, exist_ok=True)
 
     @staticmethod
     def run_zokrates(cmd_name: str, cmd: list) -> str:

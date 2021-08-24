@@ -34,7 +34,7 @@ static_config = {
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="batch num (integer)")
-    parser.add_argument("--project_root", "-r", required=False, default=os.path.dirname(os.path.abspath(__file__)), type=str)
+    parser.add_argument("--project_root", "-r", required=False, default=os.path.dirname(os.path.abspath(__file__)) + "/", type=str)
     parser.add_argument("--zokrates_bin_path", "-z", required=False, default="/Users/dc/research_project/ZoKrates/target/release/zokrates", type=str)
     parser.add_argument("--stdlib_path", "-s", required=False, default="/Users/dc/research_project/ZoKrates/zokrates_stdlib/stdlib", type=str)
     parser.add_argument("--proving_scheme", "-p", required=False, default="g16", type=str)

@@ -7,7 +7,7 @@ if __name__ == "__main__":
     # initiate Actor
     config = toml.load("./rpc_config.toml")
     btc_cli = BitcoinClient(config["url"], config["id"], config["pwd"], config["wallet_name"])
-    zok_config_path = "conf/config_base.toml"
+    zok_config_path = "conf/config_batch2.toml"
     actor = Actor(btc_cli, zok_config_path)
 
     # setup and export verifier
