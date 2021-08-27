@@ -103,7 +103,7 @@ if __name__ == "__main__":
     config["context"]["PROVING_SCHEME_NAME"] = proving_scheme
     config["context"]["ROOT_DIR"] = project_root + "zk_relay/zok_src/"
     config["context"]["code"]["CODE_FILE_NAME"] = "validate_batch{}.zok".format(batch_num)
-    config["context"]["data"]["DATA_DIR"] = "data/batch{}".format(batch_num)
+    config["context"]["data"]["DATA_DIR"] = "data/batch{}/".format(batch_num)
     config["context"]["contract"]["CONTRACT_FILE_NAME"] = "verifier{}.sol".format(batch_num)
 
     # export configuration toml file
@@ -118,3 +118,4 @@ if __name__ == "__main__":
     code_path = config["context"]["ROOT_DIR"] + config["context"]["code"]["CODE_DIR"] + config["context"]["code"]["CODE_FILE_NAME"]
     with open(code_path, "w") as f:
         f.write(code)
+    print("[Success] Configuration for batch {} completes.".format(batch_num))
