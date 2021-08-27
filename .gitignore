@@ -133,7 +133,7 @@ dmypy.json
 
 /zk_relay/conf/config_batch*
 /zk_relay/zok_src/code/validate*
-/zk_relay/zok_src/contract/
+/zk_relay/zok_src/contract/verifier*
 /zk_relay/zok_src/data/
 
 
