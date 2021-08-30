@@ -16,6 +16,7 @@ if __name__ == "__main__":
     batch_num = args.batch_num[0]
 
     # check whether rpc configuration file exists
+    rpc_config = None
     try:
         rpc_config = toml.load(rpc_config_path)
     except FileNotFoundError:

@@ -1,0 +1,6 @@
+import "hashes/sha256/1024bit.zok" as sha256for1024
+import "hashes/sha256/512bit.zok" as sha256for512
+
+def main(u32[32] target_block) -> (u32[8]):
+    u32[8] intermediary_image = sha256for1024(target_block[0..8], target_block[8..16], target_block[16..24], target_block[24..32])
+    return sha256for512(intermediary_image, [2147483648, ...[0; 6], 256])

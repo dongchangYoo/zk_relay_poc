@@ -16,20 +16,17 @@ class Actor:
 
     def build_input(self, start_height: int, end_height) -> (Header, list):
         epoch_head: Header = Header.from_raw_str(self.btc_cli.get_block_header_by_height(start_height // 2016 * 2016))
-        headers: list = self._get_header_batch(start_height, end_height)
         epoch_head_time_and_bits: str = epoch_head.get_word_of_single_word(4).hex()
 
-        prev_hash: str = headers[0].prev_hash.hex_as_be  # big
-        intermediate_blocks: str = ""
-        for i in range(0, len(headers) - 1):
-            intermediate_blocks += padding(headers[i].raw_header_str())
-        final_block: str = headers[-1].raw_header_str()
+        headers: list = self._get_header_batch(start_height, end_height)
+
+        blocks: str = ""
+        for i in range(len(headers)):
+            blocks += padding(headers[i].raw_header_str())
 
         encoded_input = list()
         encoded_input.append(int(epoch_head_time_and_bits, 16))
-        encoded_input.append(int(prev_hash, 16))
-        encoded_input += split_hex_to_int_array(intermediate_blocks, 4)
-        encoded_input += split_hex_to_int_array(final_block, 16)
+        encoded_input += split_hex_to_int_array(blocks, 4)
         return encoded_input
 
     def setup_and_export_verifier(self):

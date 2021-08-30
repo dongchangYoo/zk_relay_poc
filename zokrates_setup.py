@@ -5,6 +5,7 @@ import toml
 from bitcoinpy.client import BitcoinClient
 from zk_relay.actor import Actor
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="batch num (integer)")
     parser.add_argument("--rpc_config", "-r", required=False, default="./rpc_config.toml", type=str)

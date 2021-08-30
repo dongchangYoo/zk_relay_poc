@@ -1,6 +1,7 @@
 import "utils/pack/u32/pack256.zok" as pack256
-import "hashes/sha256/1024bit.zok" as sha256for1024
-import "hashes/sha256/512bit.zok" as sha256for512
+// import "hashes/sha256/1024bit.zok" as sha256for1024
+// import "hashes/sha256/512bit.zok" as sha256for512
+import "./hash_block.zok" as hash_block
 import "./pack_target.zok" as pack_target
 import "./to_big_endian256.zok" as to_big_endian256
 import "./to_big_endian32.zok" as to_big_endian32
@@ -20,8 +21,9 @@ def main(u32 expected_bits, u32[8] expected_prev_hash, u32[32] target_block) -> 
     assert(target_prev_hash[7] == expected_prev_hash[7])
 
     /* Calculate hash of target_block */
-    u32[8] intermediary_image = sha256for1024(target_block[0..8], target_block[8..16], target_block[16..24], target_block[24..32])
-    u32[8] block_hash = sha256for512(intermediary_image, [2147483648, ...[0; 6], 256])
+    // u32[8] intermediary_image = sha256for1024(target_block[0..8], target_block[8..16], target_block[16..24], target_block[24..32])
+    // u32[8] block_hash = sha256for512(intermediary_image, [2147483648, ...[0; 6], 256])
+    u32[8] block_hash = hash_block(target_block)
 
     /* Check bits of target_block */
     assert(expected_bits == target_bits)

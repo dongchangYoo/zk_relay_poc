@@ -56,8 +56,8 @@ contract Bitcoin is Verifier {
     [7]: final header's hash (32 bytes)
     [8]: next target (32 bytes)
     */
-    // 1, [["0x14f529c1f6976ccb65f3dda4645a723c784749214fc16f832861d7fa394bc01f", "0x25ab0e5ed6d5a7a465409708ab85ad18eebcc4b448102cf909359918a990fe7a"], [["0x2b7e3357ce14cf31d3512e55f8b43a8dcfc690dc50028a7df4f2d6cb78b3c73c", "0x2fdfc27a38f7c861c1d2e46ebe4209866a50f7429a4350e5e9341c086a7c8f7c"], ["0x129c874a29fc2370e7800c1a24b3486704d59514c9b7dcf434df8e5b4a6b25a0", "0x019d3dadfbd1728501b44a0b99b8a53f1dd116d89fd3136d65b77c659f7d280d"]], ["0x0f28360bd7e9be3e52d722af53dc36ff13479b0233de93872c43a187cc047e50", "0x21cd11d54fd11d3228d318c51b94afd21adc079be23879b3bc6ee89fcdd09e9e"]], ["0x0000000000000000000000000000000021738a2d8b7b435fea071017acc0cd5c", "0x00000000000000000000d14f8ae6e38cc42ecd2f79d1b55f860340d394e5d238", "0x000000000000000000000000000000000000402006ab8f2d0115e32b99b9ca02", "0x000000000000000000000000000000000c8ed149aa5c92aac757060000000000", "0x0000000000000000000000000000000000000000f25a11bb8e935667a49e32e9", "0x00000000000000000000000000000000247aca7f9d63a7c1e506891e16fa4168", "0x000000000000000000000000000000000c5e2b76282c565f123a101749e4a793", "0x000000000000000000003355843ef2eefc24ef9a55a9ac5162f5a968552003c2", "0x000000000000000000103a12b0eca8641fdb97530eca8641fdb97530eca8641f"]
-    function relay3(uint256 branchIndex, Proof memory proof, uint[9] memory input) external returns (bool) {
+    // 1, [["0x20e461558cade67612b58b85f970f5dcc3ca59129c3722aee7aa7a3dec55d28b", "0x0df8d53786370c06b43a981c98cf48980fc73b446efa658ba5d54ceb837367fd"], [["0x26b8723e0fa6745cab66c8040d3139f2850b626f6a29d6f156e7a442c1d2bacc", "0x196bb392b0ce1bb9070e7f71cff75e3b620d1b4efe41453c9a56c530a8e2e477"], ["0x2a9a10ab9d284883512a627ed4c1fbd6db28a6a819a516eb36990ee2137b091f", "0x036a5cb4946a430b1ad78cb9dc5275476381f0672fb429712b54a9a49955ecec"]], ["0x21137396d8067475d59aae309e0c441fa81e0512a7ac5ca98b84cd978ca6326b", "0x1d0833b630dd8b6b32f7cef20825dfee06ce70c65bc31a6c19d9ff6a3c1471c2"]], ["0x0000000000000000000000000000000021738a2d8b7b435fea071017acc0cd5c", "0x00000000000000000000d14f8ae6e38cc42ecd2f79d1b55f860340d394e5d238", "0x000000000000000000003355843ef2eefc24ef9a55a9ac5162f5a968552003c2", "0x000000000000000000000000000000000c5e2b76282c565f123a101749e4a793", "0x000000000000000000103a12b0eca8641fdb97530eca8641fdb97530eca8641f"]
+    function relay3(uint256 branchIndex, Proof memory proof, uint[5] memory input) external returns (bool) {
         // check zk_proof
         bool result = verifyTx(proof, input);
         require(result == true, "Proof validation fails");
@@ -76,12 +76,12 @@ contract Bitcoin is Verifier {
 
         if (difficulty_updating) {
             //check target
-            uint256 expected_bits = targetToLittleBits(input[8]);  // little bits
-            uint256 actual_bits = (input[6] & 0xffffffff00000000) >> 32;
+            uint256 expected_bits = targetToLittleBits(input[4]);  // little bits
+            uint256 actual_bits = (input[3] & 0xffffffff00000000) >> 32;
             require(expected_bits == actual_bits, "Invalid updated bits");
 
             // update headTimeAndBits
-            branch.headTimeAndBits = input[6];  // next timeAndBits
+            branch.headTimeAndBits = input[3];  // next timeAndBits
         }
 
         // execute txs
@@ -89,8 +89,8 @@ contract Bitcoin is Verifier {
         branch.latestHeight = local_height + BATCH_NUM;
         // store new header
 
-        branch.heightToBlockHash[predecessor_height + BATCH_NUM] = input[7];
-        branch.blockHashToHeight[input[7]] = predecessor_height + BATCH_NUM;
+        branch.heightToBlockHash[predecessor_height + BATCH_NUM] = input[2];
+        branch.blockHashToHeight[input[2]] = predecessor_height + BATCH_NUM;
 
         return true;
     }

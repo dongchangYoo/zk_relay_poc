@@ -41,42 +41,33 @@ import "./libs/update_target.zok" as update_target
 import "./libs/to_big_endian256.zok" as to_big_endian256
 import "./libs/validate_block_header.zok" as validate_block_header
 
+def main(field epoch_head_time_and_bits, private u32[{num}][32] blocks) -> (field, field, field, field):
+    // parsing inputs
+    u32[4] unpacked_old_tb = unpack128(epoch_head_time_and_bits)
+    u32 little_head_time = unpacked_old_tb[1]
+    u32 little_head_bits = unpacked_old_tb[2]
 
-def main(field epoch_head_time_and_bits, field prev_hash, private u32[{intermediate_num}][32] intermediate_blocks, field[5] final_block) -> (field, field):
-    u32[4] tmp = unpack128(epoch_head_time_and_bits)
-    u32 little_head_time = tmp[1]
-    u32 little_head_bits = tmp[2]
+    field little_new_time_and_bits = pack128(blocks[{num_minus_one}][16..20])
 
-    u32[8] big_prev_hash = unpack256(prev_hash)
-    u32[8] little_prev_hash = to_big_endian256(big_prev_hash)
+    u32 little_tail_time = blocks[{num_minus_two}][17]
+    u32 little_next_bits = blocks[{num_minus_one}][18]
 
-    u32[32] little_final_block = [
-        ...unpack128(final_block[0]),
-        ...unpack128(final_block[1]),
-        ...unpack128(final_block[2]),
-        ...unpack128(final_block[3]),
-        ...unpack128(final_block[4]),
-        2147483648, ...[0; 10], 640
-    ]
+    u32[8] little_prev_hash = blocks[0][1..9]
+    field big_prev_hash = pack256(to_big_endian256(little_prev_hash))  // to be return
 
-    u32 little_tail_time = intermediate_blocks[{intermediate_num} - 1][17]
-    u32 little_next_bits = little_final_block[18]
-    
     // validate intermediate headers
 """
 
-intermediate_code_block = """    little_prev_hash = validate_block_header(little_head_bits, little_prev_hash, intermediate_blocks[{batch_loop}])
+intermediate_code_block = """    little_prev_hash = validate_block_header(little_head_bits, little_prev_hash, blocks[{loop}])
 """
 
 tail_static_code = """
-    // validate final block header
-    u32[8] little_final_hash = validate_block_header(little_next_bits, little_prev_hash, little_final_block)
-
     // validate target
     field big_updated_target = update_target(little_head_time, little_head_bits, little_tail_time)
 
-    field big_final_hash = pack256(to_big_endian256(little_final_hash))
-    return big_final_hash, big_updated_target
+    // calculate final hash
+    field big_final_hash = pack256(to_big_endian256(little_prev_hash))
+    return big_prev_hash, big_final_hash, little_new_time_and_bits, big_updated_target
 """
 
 
@@ -111,8 +102,8 @@ if __name__ == "__main__":
         config_toml = toml.dumps(config)
         f.write(config_toml)
 
-    head_code = head_static_code.format(intermediate_num=(batch_num-1))
-    body_code = "".join([intermediate_code_block.format(batch_loop=i) for i in range(batch_num - 1)])
+    head_code = head_static_code.format(num=batch_num, num_minus_one=(batch_num-1), num_minus_two=(batch_num-2))
+    body_code = "".join([intermediate_code_block.format(loop=i) for i in range(batch_num)])
     code = head_code + body_code + tail_static_code
 
     code_path = config["context"]["ROOT_DIR"] + config["context"]["code"]["CODE_DIR"] + config["context"]["code"]["CODE_FILE_NAME"]

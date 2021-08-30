@@ -155,6 +155,7 @@ class Zokrates:
         # print(">> {} starts".format(cmd_name))
         return_obj = subprocess.run(cmd, stdout=subprocess.PIPE)
         if return_obj.returncode != 0:
+            print(return_obj.stdout.decode())
             raise Exception(cmd_name + " error")
         return return_obj.stdout.hex()
 
