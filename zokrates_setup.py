@@ -8,9 +8,6 @@ from zk_relay.actor import Actor
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="batch num (integer)")
     parser.add_argument("--rpc_config", "-r", required=False, default="./rpc_config.toml", type=str)
-    # parser.add_argument("--zokrates_bin_path", "-z", required=False, default="/Users/dc/research_project/ZoKrates/target/release/zokrates", type=str)
-    # parser.add_argument("--stdlib_path", "-s", required=False, default="/Users/dc/research_project/ZoKrates/zokrates_stdlib/stdlib", type=str)
-    # parser.add_argument("--proving_scheme", "-p", required=False, default="g16", type=str)
     parser.add_argument("--batch_num", "-b", required=True, type=int, nargs=1)
 
     # parse configuration arguments
@@ -19,6 +16,7 @@ if __name__ == "__main__":
     batch_num = args.batch_num[0]
 
     # check whether rpc configuration file exists
+    rpc_config = None
     try:
         rpc_config = toml.load(rpc_config_path)
     except FileNotFoundError:
@@ -39,9 +37,3 @@ if __name__ == "__main__":
     # setup and export verifier
     actor.setup_and_export_verifier()
 
-    # # generate proof
-    # actor.build_input_and_prove(647135, 647136)
-    #
-    # # flattening proof
-    # flat_proof = actor.flatten_proof()
-    # print(flat_proof)

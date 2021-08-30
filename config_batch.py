@@ -59,7 +59,7 @@ def main(field epoch_head_time_and_bits, field prev_hash, private u32[{intermedi
         2147483648, ...[0; 10], 640
     ]
 
-    u32 little_tail_time = intermediate_blocks[0][17]
+    u32 little_tail_time = intermediate_blocks[{intermediate_num} - 1][17]
     u32 little_next_bits = little_final_block[18]
     
     // validate intermediate headers
